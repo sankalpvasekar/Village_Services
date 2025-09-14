@@ -1,0 +1,141 @@
+{% extends 'freelancer_platform/base.html' %}
+
+{% block title %}Applications for {{ job.title }} - Local Free-Lancer{% endblock %}
+
+{% block content %}
+
+<div class="max-w-4xl mx-auto rounded-lg">
+<!-- Job Summary Card -->
+<div class="bg-white rounded-lg shadow-xl mb-6 overflow-hidden">
+<div class="px-6 py-5 border-b border-gray-200 bg-gray-50">
+<div class="flex items-center justify-between">
+<div>
+<h1 class="text-2xl font-bold text-gray-900">Applications for {{ job.title }}</h1>
+<p class="text-gray-600 mt-1">{{ applications.count }} application{{ applications.count|pluralize }}</p>
+</div>
+<div>
+<a href="{% url 'job_detail' job.id %}" class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50 transition-colors">
+<!-- Back arrow SVG icon -->
+<svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+</svg>
+Back to Job
+</a>
+</div>
+</div>
+</div>
+
+    <div class="px-6 py-4">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+            <div><span class="font-semibold text-gray-600">Category:</span><span class="ml-2 text-gray-800">{{ job.get_category_display }}</span></div>
+            <div><span class="font-semibold text-gray-600">Budget:</span><span class="ml-2 text-gray-800">${{ job.budget_min }} - ${{ job.budget_max }}</span></div>
+            <div><span class="font-semibold text-gray-600">Status:</span><span class="ml-2 text-gray-800">{{ job.get_status_display }}</span></div>
+        </div>
+    </div>
+</div>
+
+<!-- All Applications List -->
+<div class="bg-white rounded-lg shadow-xl overflow-hidden">
+    <div class="px-6 py-5 border-b border-gray-200 bg-gray-50">
+        <h2 class="text-lg font-semibold text-gray-900">All Applications</h2>
+    </div>
+    
+    {% if applications %}
+        <div class="divide-y divide-gray-200">
+            {% for application in applications %}
+            <div class="px-6 py-6 transition-colors duration-200 hover:bg-gray-100">
+                <div class="flex items-start justify-between">
+                    <div class="flex-1">
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-3">
+                            <h3 class="text-lg font-medium text-gray-900">
+                                {{ application.freelancer.user.get_full_name|default:application.freelancer.user.username }}
+                            </h3>
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium 
+                                {% if application.status == 'approved' %}bg-green-100 text-green-800
+                                {% elif application.status == 'rejected' %}bg-red-100 text-red-800
+                                {% elif application.status == 'withdrawn' %}bg-gray-100 text-gray-800
+                                {% else %}bg-yellow-100 text-yellow-800{% endif %}">
+                                {{ application.get_status_display }}
+                            </span>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4 text-sm text-gray-700">
+                            <div><span class="font-semibold text-gray-600">Proposed Rate:</span><span class="ml-2">${{ application.proposed_rate }}/hr</span></div>
+                            <div><span class="font-semibold text-gray-600">Applied:</span><span class="ml-2">{{ application.applied_at|date:"F j, Y" }}</span></div>
+
+                            {% if application.freelancer.experience_years %}
+                                <div><span class="font-semibold text-gray-600">Experience:</span><span class="ml-2">{{ application.freelancer.experience_years }} years</span></div>
+                            {% endif %}
+                            {% if application.freelancer.skills %}
+                                <div><span class="font-semibold text-gray-600">Skills:</span><span class="ml-2">{{ application.freelancer.skills|truncatewords:10 }}</span></div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="bg-gray-50 rounded-lg p-4 shadow-inner">
+                            <h4 class="font-semibold text-gray-900 mb-2">Cover Letter</h4>
+                            <p class="text-gray-700 text-sm whitespace-pre-line">{{ application.cover_letter }}</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mt-4 flex flex-col sm:flex-row gap-2">
+                    {% if application.status == 'pending' %}
+                        <form action="{% url 'accept_application' application.id %}" method="post" class="inline-block">
+                            {% csrf_token %}
+                            <button type="submit" class="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded-lg shadow-sm transition-colors">
+                                <!-- Checkmark SVG icon -->
+                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                </svg>
+                                Accept
+                            </button>
+                        </form>
+
+                        <form action="{% url 'reject_application' application.id %}" method="post" class="inline-block">
+                            {% csrf_token %}
+                            <button type="submit" class="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg shadow-sm transition-colors">
+                                <!-- X mark SVG icon -->
+                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                </svg>
+                                Reject
+                            </button>
+                        </form>
+                    {% endif %}
+
+                    {% if request.user.is_authenticated %}
+                        <a href="{% url 'chat_page' other_user_id=application.freelancer.user.id %}" 
+                           class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50 transition-colors">
+                            <!-- Chat icon SVG -->
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"></path>
+                            </svg>
+                            Contact
+                        </a>
+                    {% else %}
+                        <button disabled class="inline-flex items-center px-4 py-2 border border-gray-200 text-sm font-medium rounded-lg text-gray-500 bg-gray-100 cursor-not-allowed">
+                            <!-- Disabled chat icon SVG -->
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"></path>
+                            </svg>
+                            Contact Unavailable
+                        </button>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <!-- No applications state -->
+        <div class="px-6 py-8 text-center">
+            <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            <h3 class="mt-2 text-sm font-medium text-gray-900">No applications yet</h3>
+            <p class="mt-1 text-sm text-gray-500">Applications will appear here once freelancers start applying to this job.</p>
+        </div>
+    {% endif %}
+</div>
+
+</div>
+{% endblock %}

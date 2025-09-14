@@ -1,0 +1,128 @@
+{% extends 'freelancer_platform/base.html' %}
+
+{% block title %}Register - Local Free-Lancer{% endblock %}
+
+{% block content %}
+<div class="min-h-screen flex items-center justify-center bg-gradient-to-r from-blue-50 to-purple-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-md w-full space-y-8">
+        <!-- Logo -->
+        <div class="text-center">
+            <div class="mx-auto h-16 w-16 bg-primary rounded-lg flex items-center justify-center mb-4 shadow-lg">
+                <span class="text-white font-bold text-2xl">L</span>
+            </div>
+            {% if user_type == 'freelancer' %}
+                <h2 class="text-3xl font-extrabold text-gray-900 mb-2">Join as Local Worker</h2>
+                <p class="text-gray-600">Start your journey to financial independence and community contribution</p>
+            {% elif user_type == 'recruiter' %}
+                <h2 class="text-3xl font-extrabold text-gray-900 mb-2">Join as Job Recruiter</h2>
+                <p class="text-gray-600">Connect with local talent and support community development</p>
+            {% else %}
+                <h2 class="text-3xl font-extrabold text-gray-900 mb-2">Create Your Account</h2>
+                <p class="text-gray-600">Choose your role and start making a difference in your community</p>
+            {% endif %}
+        </div>
+
+        <!-- Benefits -->
+        {% if user_type == 'freelancer' %}
+            <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4 animate-fade-in">
+                <h3 class="text-sm font-medium text-blue-900 mb-2">Benefits for Local Workers:</h3>
+                <ul class="text-sm text-blue-800 space-y-1">
+                    <li>• Find local job opportunities</li>
+                    <li>• Build your professional profile</li>
+                    <li>• Access community resources</li>
+                    <li>• Get skill development support</li>
+                </ul>
+            </div>
+        {% elif user_type == 'recruiter' %}
+            <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4 animate-fade-in">
+                <h3 class="text-sm font-medium text-yellow-900 mb-2">Benefits for Job Recruiters:</h3>
+                <ul class="text-sm text-yellow-800 space-y-1">
+                    <li>• Connect with local talent</li>
+                    <li>• Support community development</li>
+                    <li>• Find reliable workers</li>
+                    <li>• Contribute to poverty reduction</li>
+                </ul>
+            </div>
+        {% endif %}
+
+        <!-- Registration Form -->
+        <form method="post" class="bg-white p-8 rounded-3xl shadow-2xl space-y-6">
+            {% csrf_token %}
+
+            <!-- User Type -->
+            <div>
+                <label for="{{ form.user_type.id_for_label }}" class="block text-sm font-medium text-gray-700">I want to join as:</label>
+                {{ form.user_type }}
+                {% if form.user_type.errors %}<p class="text-red-600 text-sm mt-1">{{ form.user_type.errors.0 }}</p>{% endif %}
+            </div>
+
+            <!-- Username -->
+            <div>
+                <label for="{{ form.username.id_for_label }}" class="block text-sm font-medium text-gray-700">Username</label>
+                {{ form.username }}
+                {% if form.username.errors %}<p class="text-red-600 text-sm mt-1">{{ form.username.errors.0 }}</p>{% endif %}
+            </div>
+
+            <!-- Name Fields -->
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label for="{{ form.first_name.id_for_label }}" class="block text-sm font-medium text-gray-700">First Name</label>
+                    {{ form.first_name }}
+                    {% if form.first_name.errors %}<p class="text-red-600 text-sm mt-1">{{ form.first_name.errors.0 }}</p>{% endif %}
+                </div>
+                <div>
+                    <label for="{{ form.last_name.id_for_label }}" class="block text-sm font-medium text-gray-700">Last Name</label>
+                    {{ form.last_name }}
+                    {% if form.last_name.errors %}<p class="text-red-600 text-sm mt-1">{{ form.last_name.errors.0 }}</p>{% endif %}
+                </div>
+            </div>
+
+            <!-- Email & Phone -->
+            <div>
+                <label for="{{ form.email.id_for_label }}" class="block text-sm font-medium text-gray-700">Email</label>
+                {{ form.email }}
+                {% if form.email.errors %}<p class="text-red-600 text-sm mt-1">{{ form.email.errors.0 }}</p>{% endif %}
+            </div>
+            <div>
+                <label for="{{ form.phone.id_for_label }}" class="block text-sm font-medium text-gray-700">Phone (Optional)</label>
+                {{ form.phone }}
+                {% if form.phone.errors %}<p class="text-red-600 text-sm mt-1">{{ form.phone.errors.0 }}</p>{% endif %}
+            </div>
+
+            <!-- Password -->
+            <div>
+                <label for="{{ form.password1.id_for_label }}" class="block text-sm font-medium text-gray-700">Password</label>
+                {{ form.password1 }}
+                {% if form.password1.errors %}<p class="text-red-600 text-sm mt-1">{{ form.password1.errors.0 }}</p>{% endif %}
+            </div>
+            <div>
+                <label for="{{ form.password2.id_for_label }}" class="block text-sm font-medium text-gray-700">Confirm Password</label>
+                {{ form.password2 }}
+                {% if form.password2.errors %}<p class="text-red-600 text-sm mt-1">{{ form.password2.errors.0 }}</p>{% endif %}
+            </div>
+
+            <!-- Submit -->
+            <div>
+                <button type="submit" class="w-full py-3 bg-primary hover:bg-secondary text-white font-semibold rounded-lg shadow-md transition-all transform hover:scale-105">
+                    {% if user_type == 'freelancer' %}Join as Local Worker{% elif user_type == 'recruiter' %}Join as Job Recruiter{% else %}Create Account{% endif %}
+                </button>
+            </div>
+
+            <p class="text-center text-xs text-gray-400">
+                By creating an account, you agree to our 
+                <a href="#" class="text-primary hover:text-secondary">Terms</a> & 
+                <a href="#" class="text-primary hover:text-secondary">Privacy Policy</a>
+            </p>
+        </form>
+    </div>
+</div>
+
+<!-- Tailwind Animations -->
+<style>
+    @keyframes fade-in {
+        0% { opacity: 0; transform: translateY(10px); }
+        100% { opacity: 1; transform: translateY(0); }
+    }
+    .animate-fade-in { animation: fade-in 1s ease-out forwards; }
+</style>
+{% endblock %}

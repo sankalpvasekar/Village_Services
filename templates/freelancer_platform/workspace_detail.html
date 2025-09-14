@@ -1,0 +1,40 @@
+{% extends 'freelancer_platform/base.html' %}
+
+{% block title %}Workspace - Approved Jobs{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8 max-w-4xl">
+    <h1 class="text-2xl font-bold text-gray-900 mb-6">Your Workspace: Approved Jobs</h1>
+
+    {% if approved_jobs %}
+        <div class="space-y-4">
+            {% for app in approved_jobs %}
+                <div class="bg-white rounded-lg shadow-md p-6 border border-gray-200">
+                    <h2 class="text-xl font-semibold text-gray-900">{{ app.job.title }}</h2>
+                    <p class="text-sm text-gray-600 mt-1">
+                        Assigned on: {{ app.applied_at|date:"M d, Y" }}
+                    </p>
+                    <p class="mt-2 text-gray-700">{{ app.job.description }}</p>
+                    
+                    <div class="mt-4 flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-4">
+                        <a href="{% url 'job_detail' app.job.id %}" 
+                           class="inline-flex justify-center items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 transition-colors">
+                            View Job Details
+                        </a>
+                        <!-- The chat button -->
+                        <a href="{% url 'chat_app' app.job.user.id %}" 
+                           class="inline-flex justify-center items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 transition-colors">
+                            Chat with Recruiter
+                        </a>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="bg-white rounded-lg shadow-md p-6 text-center">
+            <h3 class="mt-2 text-sm font-medium text-gray-900">No jobs have been assigned to you yet.</h3>
+            <p class="mt-1 text-sm text-gray-500">Check the job board for new opportunities.</p>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
