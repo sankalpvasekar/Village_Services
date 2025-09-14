@@ -1,0 +1,176 @@
+{% extends 'freelancer_platform/base.html' %}
+
+{% block title %}Payment History - Local Free-Lancer{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto">
+    <!-- Header -->
+    <div class="bg-white rounded-lg shadow mb-6">
+        <div class="px-6 py-4 border-b border-gray-200">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-2xl font-bold text-gray-900">Payment History</h1>
+                    <p class="text-gray-600 mt-1">
+                        {% if user_profile.user_type == 'freelancer' %}
+                            Your payment history as a freelancer
+                        {% else %}
+                            Your payment history as a recruiter
+                        {% endif %}
+                    </p>
+                </div>
+                <div class="text-right">
+                    <span class="text-sm text-gray-500">Total Payments: {{ payments.count }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Payment List -->
+    <div class="bg-white rounded-lg shadow">
+        {% if payments %}
+            <div class="divide-y divide-gray-200">
+                {% for payment in payments %}
+                <div class="px-6 py-6 hover:bg-gray-50">
+                    <div class="flex items-start justify-between">
+                        <div class="flex-1">
+                            <div class="flex items-center justify-between mb-2">
+                                <h3 class="text-lg font-medium text-gray-900">
+                                    {{ payment.job_request.job.title }}
+                                </h3>
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium 
+                                    {% if payment.status == 'released' %}bg-green-100 text-green-800
+                                    {% elif payment.status == 'paid' %}bg-blue-100 text-blue-800
+                                    {% elif payment.status == 'work_submitted' %}bg-yellow-100 text-yellow-800
+                                    {% elif payment.status == 'work_confirmed' %}bg-purple-100 text-purple-800
+                                    {% elif payment.status == 'failed' %}bg-red-100 text-red-800
+                                    {% elif payment.status == 'refunded' %}bg-orange-100 text-orange-800
+                                    {% elif payment.status == 'disputed' %}bg-red-100 text-red-800
+                                    {% else %}bg-gray-100 text-gray-800{% endif %}">
+                                    {{ payment.get_status_display }}
+                                </span>
+                            </div>
+                            
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4 text-sm">
+                                <div>
+                                    <span class="font-medium text-gray-500">Amount:</span>
+                                    <span class="ml-2 text-gray-900">₹{{ payment.amount }}</span>
+                                </div>
+                                <div>
+                                    <span class="font-medium text-gray-500">Payment Method:</span>
+                                    <span class="ml-2 text-gray-900">{{ payment.get_payment_method_display }}</span>
+                                </div>
+                                <div>
+                                    <span class="font-medium text-gray-500">Created:</span>
+                                    <span class="ml-2 text-gray-900">{{ payment.created_at|date:"F j, Y" }}</span>
+                                </div>
+                                {% if user_profile.user_type == 'freelancer' %}
+                                <div>
+                                    <span class="font-medium text-gray-500">Recruiter:</span>
+                                    <span class="ml-2 text-gray-900">{{ payment.recruiter.user.get_full_name|default:payment.recruiter.user.username }}</span>
+                                </div>
+                                {% else %}
+                                <div>
+                                    <span class="font-medium text-gray-500">Freelancer:</span>
+                                    <span class="ml-2 text-gray-900">{{ payment.freelancer.user.get_full_name|default:payment.freelancer.user.username }}</span>
+                                </div>
+                                {% endif %}
+                                {% if payment.paid_at %}
+                                <div>
+                                    <span class="font-medium text-gray-500">Paid:</span>
+                                    <span class="ml-2 text-gray-900">{{ payment.paid_at|date:"F j, Y g:i A" }}</span>
+                                </div>
+                                {% endif %}
+                                {% if payment.released_at %}
+                                <div>
+                                    <span class="font-medium text-gray-500">Released:</span>
+                                    <span class="ml-2 text-gray-900">{{ payment.released_at|date:"F j, Y g:i A" }}</span>
+                                </div>
+                                {% endif %}
+                            </div>
+                            
+                            <!-- Work Status for Freelancers -->
+                            {% if user_profile.user_type == 'freelancer' and payment.work_tracking.exists %}
+                            <div class="mb-3">
+                                <span class="font-medium text-gray-500">Work Status:</span>
+                                {% with work=payment.work_tracking.first %}
+                                <span class="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium 
+                                    {% if work.status == 'completed' %}bg-green-100 text-green-800
+                                    {% elif work.status == 'submitted' %}bg-yellow-100 text-yellow-800
+                                    {% elif work.status == 'rejected' %}bg-red-100 text-red-800
+                                    {% elif work.status == 'revision_requested' %}bg-orange-100 text-orange-800
+                                    {% else %}bg-gray-100 text-gray-800{% endif %}">
+                                    {{ work.get_status_display }}
+                                </span>
+                                {% endwith %}
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <!-- Action Buttons -->
+                    <div class="mt-4 flex flex-col sm:flex-row gap-2">
+                        <a href="{% url 'payment_detail' payment.id %}" 
+                           class="inline-flex items-center px-3 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-colors">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                            </svg>
+                            View Details
+                        </a>
+                        
+                        <!-- Freelancer Actions -->
+                        {% if user_profile.user_type == 'freelancer' %}
+                            {% if payment.status == 'paid' or payment.status == 'work_submitted' %}
+                            <a href="{% url 'submit_work' payment.id %}" 
+                               class="inline-flex items-center px-3 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-primary hover:bg-secondary focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-colors">
+                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                                </svg>
+                                Submit Work
+                            </a>
+                            {% endif %}
+                        {% endif %}
+                        
+                        <!-- Recruiter Actions -->
+                        {% if user_profile.user_type == 'recruiter' %}
+                            {% if payment.status == 'work_submitted' %}
+                            <a href="{% url 'review_work' payment.id %}" 
+                               class="inline-flex items-center px-3 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors">
+                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                                Review Work
+                            </a>
+                            {% endif %}
+                        {% endif %}
+                        
+                        <!-- File Complaint Button -->
+                        <a href="{% url 'file_complaint_for_job' payment.job_request.job.id %}" 
+                           class="inline-flex items-center px-3 py-2 border border-red-300 text-sm font-medium rounded-md text-red-700 bg-red-50 hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                            </svg>
+                            File Complaint
+                        </a>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="px-6 py-8 text-center">
+                <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"></path>
+                </svg>
+                <h3 class="mt-2 text-sm font-medium text-gray-900">No payments yet</h3>
+                <p class="mt-1 text-sm text-gray-500">
+                    {% if user_profile.user_type == 'freelancer' %}
+                        You haven't received any payments yet. Complete jobs to start earning!
+                    {% else %}
+                        You haven't made any payments yet. Start hiring freelancers to see payment history here.
+                    {% endif %}
+                </p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

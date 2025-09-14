@@ -9,7 +9,11 @@ https://docs.djangoproject.com/en/4.2/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.2/ref/settings/
 """
+<<<<<<< HEAD
 
+=======
+import os
+>>>>>>> 29d8db2d3b215d8409fd8145e93e0e02b2e12a74
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -25,7 +29,12 @@ SECRET_KEY = 'django-insecure-wj*8x=5mtle&(^#45-ucbuepg3b9uye115on#-jtp+p)2uc^9*
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
+<<<<<<< HEAD
 ALLOWED_HOSTS = []
+=======
+ALLOWED_HOSTS = ['*']
+
+>>>>>>> 29d8db2d3b215d8409fd8145e93e0e02b2e12a74
 
 
 # Application definition
@@ -38,7 +47,10 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'freelancer_platform',
+<<<<<<< HEAD
     'widget_tweaks',
+=======
+>>>>>>> 29d8db2d3b215d8409fd8145e93e0e02b2e12a74
 ]
 
 MIDDLEWARE = [
@@ -130,5 +142,8 @@ MEDIA_ROOT = BASE_DIR / 'media'
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+<<<<<<< HEAD
 
 
+=======
+>>>>>>> 29d8db2d3b215d8409fd8145e93e0e02b2e12a74

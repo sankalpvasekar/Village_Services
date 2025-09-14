@@ -1,0 +1,196 @@
+{% extends 'freelancer_platform/base.html' %}
+{% load static %}
+
+{% block title %}Resolve Complaint{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-danger text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-gavel me-2"></i>Resolve Complaint
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <!-- Complaint Information -->
+                    <div class="alert alert-info">
+                        <h5><i class="fas fa-info-circle me-2"></i>Complaint Details</h5>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <strong>Complaint ID:</strong> #{{ complaint.id }}<br>
+                                <strong>Title:</strong> {{ complaint.title }}<br>
+                                <strong>Type:</strong> {{ complaint.get_complaint_type_display }}<br>
+                                <strong>Status:</strong> 
+                                <span class="badge bg-warning">{{ complaint.get_status_display }}</span>
+                            </div>
+                            <div class="col-md-6">
+                                <strong>Complainant:</strong> {{ complaint.complainant.user.get_full_name|default:complaint.complainant.user.username }}<br>
+                                <strong>Payment ID:</strong> #{{ complaint.payment.id }}<br>
+                                <strong>Amount:</strong> <span class="text-success fw-bold">₹{{ complaint.payment.amount }}</span><br>
+                                <strong>Filed:</strong> {{ complaint.created_at|date:"M d, Y H:i" }}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Complaint Description -->
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h6 class="mb-0">
+                                <i class="fas fa-align-left me-2"></i>Complaint Description
+                            </h6>
+                        </div>
+                        <div class="card-body">
+                            <p>{{ complaint.description|linebreaks }}</p>
+                        </div>
+                    </div>
+
+                    <!-- Evidence Section -->
+                    {% if complaint.evidence_photos or complaint.evidence_videos or complaint.evidence_documents %}
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h6 class="mb-0">
+                                <i class="fas fa-paperclip me-2"></i>Evidence
+                            </h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                {% if complaint.evidence_photos %}
+                                <div class="col-md-4">
+                                    <h6>Photos</h6>
+                                    <img src="{{ complaint.evidence_photos.url }}" class="img-thumbnail" style="max-width: 100%; height: 200px; object-fit: cover;">
+                                </div>
+                                {% endif %}
+                                {% if complaint.evidence_videos %}
+                                <div class="col-md-4">
+                                    <h6>Videos</h6>
+                                    <video controls class="img-thumbnail" style="max-width: 100%; height: 200px;">
+                                        <source src="{{ complaint.evidence_videos.url }}" type="video/mp4">
+                                        Your browser does not support the video tag.
+                                    </video>
+                                </div>
+                                {% endif %}
+                                {% if complaint.evidence_documents %}
+                                <div class="col-md-4">
+                                    <h6>Documents</h6>
+                                    <div class="d-grid">
+                                        <a href="{{ complaint.evidence_documents.url }}" class="btn btn-outline-primary" target="_blank">
+                                            <i class="fas fa-download me-1"></i>Download Document
+                                        </a>
+                                    </div>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Payment Details -->
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h6 class="mb-0">
+                                <i class="fas fa-credit-card me-2"></i>Payment Details
+                            </h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <p><strong>Payment Status:</strong> 
+                                        <span class="badge 
+                                            {% if complaint.payment.status == 'completed' %}bg-success
+                                            {% elif complaint.payment.status == 'pending' %}bg-warning
+                                            {% elif complaint.payment.status == 'disputed' %}bg-danger
+                                            {% elif complaint.payment.status == 'refunded' %}bg-info
+                                            {% else %}bg-secondary{% endif %}">
+                                            {{ complaint.payment.get_status_display }}
+                                        </span>
+                                    </p>
+                                    <p><strong>Job:</strong> {{ complaint.payment.job_request.job.title }}</p>
+                                </div>
+                                <div class="col-md-6">
+                                    <p><strong>Recruiter:</strong> {{ complaint.payment.recruiter.user.get_full_name|default:complaint.payment.recruiter.user.username }}</p>
+                                    <p><strong>Freelancer:</strong> {{ complaint.payment.freelancer.user.get_full_name|default:complaint.payment.freelancer.user.username }}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Resolution Form -->
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <div class="mb-3">
+                            <label for="{{ form.resolution_type.id_for_label }}" class="form-label">
+                                <i class="fas fa-list me-1"></i>Resolution Type
+                            </label>
+                            {{ form.resolution_type }}
+                            {% if form.resolution_type.errors %}
+                                <div class="text-danger">
+                                    {% for error in form.resolution_type.errors %}
+                                        <small>{{ error }}</small>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="{{ form.resolution_amount.id_for_label }}" class="form-label">
+                                <i class="fas fa-rupee-sign me-1"></i>Resolution Amount (if applicable)
+                            </label>
+                            {{ form.resolution_amount }}
+                            {% if form.resolution_amount.errors %}
+                                <div class="text-danger">
+                                    {% for error in form.resolution_amount.errors %}
+                                        <small>{{ error }}</small>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                            <div class="form-text">
+                                Required for partial payment resolution. Leave empty for other resolution types.
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="{{ form.admin_notes.id_for_label }}" class="form-label">
+                                <i class="fas fa-sticky-note me-1"></i>Admin Notes
+                            </label>
+                            {{ form.admin_notes }}
+                            {% if form.admin_notes.errors %}
+                                <div class="text-danger">
+                                    {% for error in form.admin_notes.errors %}
+                                        <small>{{ error }}</small>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                            <div class="form-text">
+                                Provide detailed explanation of your decision and reasoning.
+                            </div>
+                        </div>
+
+                        <!-- Important Notice -->
+                        <div class="alert alert-warning">
+                            <h6><i class="fas fa-exclamation-triangle me-2"></i>Important Notice</h6>
+                            <ul class="mb-0">
+                                <li>Your decision is final and binding</li>
+                                <li>Consider all evidence and circumstances carefully</li>
+                                <li>Provide clear reasoning for your decision</li>
+                                <li>Resolution actions will be executed immediately</li>
+                            </ul>
+                        </div>
+
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a href="{% url 'admin_complaints' %}" class="btn btn-secondary me-md-2">
+                                <i class="fas fa-arrow-left me-1"></i>Back to Complaints
+                            </a>
+                            <button type="submit" class="btn btn-danger">
+                                <i class="fas fa-gavel me-1"></i>Resolve Complaint
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

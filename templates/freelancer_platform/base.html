@@ -18,6 +18,7 @@
             }
         }
     </script>
+<<<<<<< HEAD
   
 <style>
 /* Typing effect */
@@ -40,6 +41,8 @@
 }
 </style>
 
+=======
+>>>>>>> 29d8db2d3b215d8409fd8145e93e0e02b2e12a74
 </head>
 <body class="bg-gray-50 min-h-screen">
     <!-- Navigation Bar -->
@@ -75,6 +78,7 @@
                                 My Profile
                             </a>
                         {% endif %}
+<<<<<<< HEAD
                         <!-- Show Messages for both recruiter and freelancer -->
                         <a href="{% url 'messages_list' %}" class="text-gray-700 hover:text-primary px-3 py-2 rounded-md text-sm font-medium transition-colors">
                           Messages
@@ -99,6 +103,31 @@
     </div>
 
 {% else %}
+=======
+                        
+                        <!-- Language Selector -->
+                        <div class="relative">
+                            <button id="languageDropdown" class="flex items-center space-x-1 text-gray-700 hover:text-primary px-3 py-2 rounded-md text-sm font-medium transition-colors">
+                                <span id="currentLanguage">English</span>
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                </svg>
+                            </button>
+                            <div id="languageMenu" class="absolute right-0 mt-2 w-32 bg-white rounded-md shadow-lg py-1 z-50 hidden">
+                                <button class="language-option block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" data-lang="en">English</button>
+                                <button class="language-option block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" data-lang="hi">हिंदी</button>
+                                <button class="language-option block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" data-lang="mr">मराठी</button>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-center space-x-4">
+                            <span class="text-sm text-gray-600" data-translate="welcome">Welcome, {{ user.username }}</span>
+                            <a href="{% url 'logout' %}" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors" data-translate="nav_logout">
+                                Logout
+                            </a>
+                        </div>
+                    {% else %}
+>>>>>>> 29d8db2d3b215d8409fd8145e93e0e02b2e12a74
                         <a href="{% url 'login' %}" class="text-gray-700 hover:text-primary px-3 py-2 rounded-md text-sm font-medium transition-colors" data-translate="nav_login">
                             Login
                         </a>
@@ -106,7 +135,24 @@
                             Register
                         </a>
                         
+<<<<<<< HEAD
                         
+=======
+                        <!-- Language Selector for non-authenticated users -->
+                        <div class="relative">
+                            <button id="languageDropdownGuest" class="flex items-center space-x-1 text-gray-700 hover:text-primary px-3 py-2 rounded-md text-sm font-medium transition-colors">
+                                <span id="currentLanguageGuest">English</span>
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                </svg>
+                            </button>
+                            <div id="languageMenuGuest" class="absolute right-0 mt-2 w-32 bg-white rounded-md shadow-lg py-1 z-50 hidden">
+                                <button class="language-option-guest block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" data-lang="en">English</button>
+                                <button class="language-option-guest block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" data-lang="hi">हिंदी</button>
+                                <button class="language-option-guest block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" data-lang="mr">मराठी</button>
+                            </div>
+                        </div>
+>>>>>>> 29d8db2d3b215d8409fd8145e93e0e02b2e12a74
                     {% endif %}
                 </div>
 

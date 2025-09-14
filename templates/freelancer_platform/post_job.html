@@ -1,5 +1,8 @@
 {% extends 'freelancer_platform/base.html' %}
+<<<<<<< HEAD
 {% load widget_tweaks %}
+=======
+>>>>>>> 29d8db2d3b215d8409fd8145e93e0e02b2e12a74
 
 {% block title %}Post Job - Local Free-Lancer{% endblock %}
 
@@ -28,27 +31,73 @@
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div class="flex flex-col">
             <label class="text-sm font-semibold text-gray-700 mb-2">Job Title *</label>
+<<<<<<< HEAD
             {{ form.title|add_class:"w-full rounded-xl bg-white/80 border border-gray-200 shadow-md p-3 focus:ring-2 focus:ring-indigo-400 transition" }}
           </div>
           <div class="flex flex-col">
             <label class="text-sm font-semibold text-gray-700 mb-2">Job Category *</label>
             {{ form.category|add_class:"w-full rounded-xl bg-white/80 border border-gray-200 shadow-md p-3 focus:ring-2 focus:ring-indigo-400 transition" }}
+=======
+            {{ form.title }}
+            {% if form.title.errors %}
+              <div class="text-red-500 text-sm mt-1">
+                {% for error in form.title.errors %}
+                  {{ error }}
+                {% endfor %}
+              </div>
+            {% endif %}
+          </div>
+          <div class="flex flex-col">
+            <label class="text-sm font-semibold text-gray-700 mb-2">Job Category *</label>
+            {{ form.category }}
+            {% if form.category.errors %}
+              <div class="text-red-500 text-sm mt-1">
+                {% for error in form.category.errors %}
+                  {{ error }}
+                {% endfor %}
+              </div>
+            {% endif %}
+>>>>>>> 29d8db2d3b215d8409fd8145e93e0e02b2e12a74
           </div>
         </div>
 
         <!-- Row 2: Company + Location -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div class="flex flex-col">
+<<<<<<< HEAD
             <label class="text-sm font-semibold text-gray-700 mb-2">Company *</label>
             {{ form.company_name|add_class:"w-full rounded-xl bg-white/80 border border-gray-200 shadow-md p-3 focus:ring-2 focus:ring-indigo-400 transition" }}
           </div>
           <div class="flex flex-col">
             <label class="text-sm font-semibold text-gray-700 mb-2">Location *</label>
             {{ form.location|add_class:"w-full rounded-xl bg-white/80 border border-gray-200 shadow-md p-3 focus:ring-2 focus:ring-indigo-400 transition" }}
+=======
+            <label class="text-sm font-semibold text-gray-700 mb-2">Company (Optional)</label>
+            {{ form.company_name }}
+            {% if form.company_name.errors %}
+              <div class="text-red-500 text-sm mt-1">
+                {% for error in form.company_name.errors %}
+                  {{ error }}
+                {% endfor %}
+              </div>
+            {% endif %}
+          </div>
+          <div class="flex flex-col">
+            <label class="text-sm font-semibold text-gray-700 mb-2">Location (Optional)</label>
+            {{ form.location }}
+            {% if form.location.errors %}
+              <div class="text-red-500 text-sm mt-1">
+                {% for error in form.location.errors %}
+                  {{ error }}
+                {% endfor %}
+              </div>
+            {% endif %}
+>>>>>>> 29d8db2d3b215d8409fd8145e93e0e02b2e12a74
           </div>
         </div>
 
         <!-- Row 3: Salary Min + Max + Duration -->
+<<<<<<< HEAD
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div class="flex flex-col">
             <label class="text-sm font-semibold text-gray-700 mb-2">Min Salary ($)*</label>
@@ -61,20 +110,89 @@
           <div class="flex flex-col">
             <label class="text-sm font-semibold text-gray-700 mb-2">Duration (Months)*</label>
             {{ form.duration_months|add_class:"w-full rounded-xl bg-white/80 border border-gray-200 shadow-md p-3 focus:ring-2 focus:ring-indigo-400 transition" }}
+=======
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+          <div class="flex flex-col">
+            <label class="text-sm font-semibold text-gray-700 mb-2">Min Salary (₹) (Optional)</label>
+            {{ form.salary_min }}
+            {% if form.salary_min.errors %}
+              <div class="text-red-500 text-sm mt-1">
+                {% for error in form.salary_min.errors %}
+                  {{ error }}
+                {% endfor %}
+              </div>
+            {% endif %}
+          </div>
+          <div class="flex flex-col">
+            <label class="text-sm font-semibold text-gray-700 mb-2">Max Salary (₹) (Optional)</label>
+            {{ form.salary_max }}
+            {% if form.salary_max.errors %}
+              <div class="text-red-500 text-sm mt-1">
+                {% for error in form.salary_max.errors %}
+                  {{ error }}
+                {% endfor %}
+              </div>
+            {% endif %}
+          </div>
+          <div class="flex flex-col">
+            <label class="text-sm font-semibold text-gray-700 mb-2">Duration *</label>
+            {{ form.duration_months }}
+            {% if form.duration_months.errors %}
+              <div class="text-red-500 text-sm mt-1">
+                {% for error in form.duration_months.errors %}
+                  {{ error }}
+                {% endfor %}
+              </div>
+            {% endif %}
+          </div>
+          <div class="flex flex-col">
+            <label class="text-sm font-semibold text-gray-700 mb-2">Duration Unit *</label>
+            {{ form.duration_unit }}
+            {% if form.duration_unit.errors %}
+              <div class="text-red-500 text-sm mt-1">
+                {% for error in form.duration_unit.errors %}
+                  {{ error }}
+                {% endfor %}
+              </div>
+            {% endif %}
+>>>>>>> 29d8db2d3b215d8409fd8145e93e0e02b2e12a74
           </div>
         </div>
 
         <!-- Row 4: Skills -->
         <div class="flex flex-col">
           <label class="text-sm font-semibold text-gray-700 mb-2">Required Skills *</label>
+<<<<<<< HEAD
           {{ form.required_skills|add_class:"w-full rounded-xl bg-white/80 border border-gray-200 shadow-md p-3 focus:ring-2 focus:ring-indigo-400 transition" }}
           <p class="text-xs text-gray-500 mt-1">Separate skills with commas (e.g.Rajma special,Arc welding).</p>
+=======
+          {{ form.required_skills }}
+          <p class="text-xs text-gray-500 mt-1">Separate skills with commas (e.g.Rajma special,Arc welding).</p>
+          {% if form.required_skills.errors %}
+            <div class="text-red-500 text-sm mt-1">
+              {% for error in form.required_skills.errors %}
+                {{ error }}
+              {% endfor %}
+            </div>
+          {% endif %}
+>>>>>>> 29d8db2d3b215d8409fd8145e93e0e02b2e12a74
         </div>
 
         <!-- Row 5: Description -->
         <div class="flex flex-col">
           <label class="text-sm font-semibold text-gray-700 mb-2">Job Description *</label>
+<<<<<<< HEAD
           {{ form.description|add_class:"w-full min-h-[160px] rounded-xl bg-white/80 border border-gray-200 shadow-md p-3 focus:ring-2 focus:ring-indigo-400 transition resize-y" }}
+=======
+          {{ form.description }}
+          {% if form.description.errors %}
+            <div class="text-red-500 text-sm mt-1">
+              {% for error in form.description.errors %}
+                {{ error }}
+              {% endfor %}
+            </div>
+          {% endif %}
+>>>>>>> 29d8db2d3b215d8409fd8145e93e0e02b2e12a74
         </div>
 
         <!-- Buttons -->

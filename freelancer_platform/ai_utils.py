@@ -2,8 +2,16 @@ import requests
 import json
 import os
 
+<<<<<<< HEAD
 # Configure Gemini AI
 GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY', 'your_gemini_api_key_here')
+=======
+# Use the provided Gemini API key
+GEMINI_API_KEY = "AIzaSyB4Owr1pklmI7WZUE5PqM07HGGZ3drBjRE"
+
+# Use the correct Gemini model endpoint for free content generation
+GEMINI_MODEL_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent"
+>>>>>>> 29d8db2d3b215d8409fd8145e93e0e02b2e12a74
 
 def get_skill_recommendations(skill):
     """
@@ -26,7 +34,11 @@ def get_skill_recommendations(skill):
         """
         
         response = requests.post(
+<<<<<<< HEAD
             "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent",
+=======
+            GEMINI_MODEL_URL,
+>>>>>>> 29d8db2d3b215d8409fd8145e93e0e02b2e12a74
             params={"key": GEMINI_API_KEY},
             json={
                 "contents": [{"parts": [{"text": prompt}]}]
@@ -55,7 +67,11 @@ def get_similar_skills(skill):
         """
         
         response = requests.post(
+<<<<<<< HEAD
             "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent",
+=======
+            GEMINI_MODEL_URL,
+>>>>>>> 29d8db2d3b215d8409fd8145e93e0e02b2e12a74
             params={"key": GEMINI_API_KEY},
             json={
                 "contents": [{"parts": [{"text": prompt}]}]
@@ -94,7 +110,11 @@ def get_job_matching_score(freelancer_skills, job_required_skills):
         """
         
         response = requests.post(
+<<<<<<< HEAD
             "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent",
+=======
+            GEMINI_MODEL_URL,
+>>>>>>> 29d8db2d3b215d8409fd8145e93e0e02b2e12a74
             params={"key": GEMINI_API_KEY},
             json={
                 "contents": [{"parts": [{"text": prompt}]}]
@@ -113,4 +133,8 @@ def get_job_matching_score(freelancer_skills, job_required_skills):
         
         return 5  # Default score
     except Exception as e:
+<<<<<<< HEAD
         return 5  # Default score 
+=======
+        return 5  # Default score
+>>>>>>> 29d8db2d3b215d8409fd8145e93e0e02b2e12a74

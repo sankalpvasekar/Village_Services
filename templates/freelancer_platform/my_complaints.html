@@ -1,0 +1,80 @@
+{% extends 'freelancer_platform/base.html' %}
+{% load static %}
+
+{% block title %}My Complaints{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-warning text-dark">
+                    <h4 class="mb-0">
+                        <i class="fas fa-exclamation-triangle me-2"></i>My Complaints
+                    </h4>
+                </div>
+                <div class="card-body">
+                    {% if complaints %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Complaint ID</th>
+                                        <th>Title</th>
+                                        <th>Type</th>
+                                        <th>Payment ID</th>
+                                        <th>Amount</th>
+                                        <th>Status</th>
+                                        <th>Filed Date</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for complaint in complaints %}
+                                    <tr>
+                                        <td>#{{ complaint.id }}</td>
+                                        <td>{{ complaint.title }}</td>
+                                        <td>
+                                            <span class="badge bg-info">
+                                                {{ complaint.get_complaint_type_display }}
+                                            </span>
+                                        </td>
+                                        <td>#{{ complaint.payment.id }}</td>
+                                        <td><span class="text-success fw-bold">₹{{ complaint.payment.amount }}</span></td>
+                                        <td>
+                                            <span class="badge 
+                                                {% if complaint.status == 'resolved' %}bg-success
+                                                {% elif complaint.status == 'open' %}bg-warning
+                                                {% elif complaint.status == 'under_review' %}bg-info
+                                                {% elif complaint.status == 'rejected' %}bg-danger
+                                                {% else %}bg-secondary{% endif %}">
+                                                {{ complaint.get_status_display }}
+                                            </span>
+                                        </td>
+                                        <td>{{ complaint.created_at|date:"M d, Y" }}</td>
+                                        <td>
+                                            <a href="{% url 'complaint_detail' complaint.id %}" class="btn btn-sm btn-outline-primary">
+                                                <i class="fas fa-eye me-1"></i>View
+                                            </a>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-exclamation-triangle fa-3x text-muted mb-3"></i>
+                            <h5 class="text-muted">No Complaints Found</h5>
+                            <p class="text-muted">You haven't filed any complaints yet.</p>
+                            <a href="{% url 'dashboard' %}" class="btn btn-primary">
+                                <i class="fas fa-arrow-left me-1"></i>Back to Dashboard
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

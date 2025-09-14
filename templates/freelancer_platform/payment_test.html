@@ -1,0 +1,226 @@
+{% extends 'freelancer_platform/base.html' %}
+
+{% block title %}Payment Testing - Local Free-Lancer{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto">
+    <!-- Header -->
+    <div class="bg-white rounded-lg shadow mb-6">
+        <div class="px-6 py-4 border-b border-gray-200">
+            <h1 class="text-2xl font-bold text-gray-900">Payment Integration Testing</h1>
+            <p class="text-gray-600 mt-1">Test different payment methods and scenarios</p>
+        </div>
+    </div>
+
+    <!-- Test Scenarios -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+        <!-- UPI Payment Test -->
+        <div class="bg-white rounded-lg shadow p-6">
+            <div class="flex items-center mb-4">
+                <div class="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center">
+                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"></path>
+                    </svg>
+                </div>
+                <h3 class="text-lg font-semibold text-gray-900 ml-3">UPI Payment</h3>
+            </div>
+            <p class="text-gray-600 text-sm mb-4">Test UPI payment integration with escrow system</p>
+            <button onclick="testPayment('upi', 1500)" 
+                    class="w-full bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors">
+                Test UPI Payment
+            </button>
+        </div>
+
+        <!-- QR Scanner Test -->
+        <div class="bg-white rounded-lg shadow p-6">
+            <div class="flex items-center mb-4">
+                <div class="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center">
+                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"></path>
+                    </svg>
+                </div>
+                <h3 class="text-lg font-semibold text-gray-900 ml-3">QR Scanner</h3>
+            </div>
+            <p class="text-gray-600 text-sm mb-4">Test QR code scanning payment method</p>
+            <button onclick="testPayment('scanner', 2000)" 
+                    class="w-full bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition-colors">
+                Test QR Payment
+            </button>
+        </div>
+
+        <!-- Cash Payment Test -->
+        <div class="bg-white rounded-lg shadow p-6">
+            <div class="flex items-center mb-4">
+                <div class="w-10 h-10 bg-yellow-500 rounded-full flex items-center justify-center">
+                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                    </svg>
+                </div>
+                <h3 class="text-lg font-semibold text-gray-900 ml-3">Cash Payment</h3>
+            </div>
+            <p class="text-gray-600 text-sm mb-4">Test cash payment handling</p>
+            <button onclick="testPayment('cash', 1000)" 
+                    class="w-full bg-yellow-600 text-white px-4 py-2 rounded-md hover:bg-yellow-700 transition-colors">
+                Test Cash Payment
+            </button>
+        </div>
+
+        <!-- Bank Transfer Test -->
+        <div class="bg-white rounded-lg shadow p-6">
+            <div class="flex items-center mb-4">
+                <div class="w-10 h-10 bg-purple-500 rounded-full flex items-center justify-center">
+                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path>
+                    </svg>
+                </div>
+                <h3 class="text-lg font-semibold text-gray-900 ml-3">Bank Transfer</h3>
+            </div>
+            <p class="text-gray-600 text-sm mb-4">Test bank transfer payment method</p>
+            <button onclick="testPayment('bank_transfer', 2500)" 
+                    class="w-full bg-purple-600 text-white px-4 py-2 rounded-md hover:bg-purple-700 transition-colors">
+                Test Bank Transfer
+            </button>
+        </div>
+
+        <!-- Razorpay Test -->
+        <div class="bg-white rounded-lg shadow p-6">
+            <div class="flex items-center mb-4">
+                <div class="w-10 h-10 bg-indigo-500 rounded-full flex items-center justify-center">
+                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                    </svg>
+                </div>
+                <h3 class="text-lg font-semibold text-gray-900 ml-3">Razorpay</h3>
+            </div>
+            <p class="text-gray-600 text-sm mb-4">Test Razorpay payment gateway</p>
+            <button onclick="testPayment('razorpay', 3000)" 
+                    class="w-full bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition-colors">
+                Test Razorpay
+            </button>
+        </div>
+
+        <!-- Complete Workflow Test -->
+        <div class="bg-white rounded-lg shadow p-6">
+            <div class="flex items-center mb-4">
+                <div class="w-10 h-10 bg-red-500 rounded-full flex items-center justify-center">
+                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                </div>
+                <h3 class="text-lg font-semibold text-gray-900 ml-3">Full Workflow</h3>
+            </div>
+            <p class="text-gray-600 text-sm mb-4">Test complete payment workflow</p>
+            <button onclick="testCompleteWorkflow()" 
+                    class="w-full bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition-colors">
+                Test Full Workflow
+            </button>
+        </div>
+    </div>
+
+    <!-- Test Results -->
+    <div class="bg-white rounded-lg shadow">
+        <div class="px-6 py-4 border-b border-gray-200">
+            <h2 class="text-lg font-semibold text-gray-900">Test Results</h2>
+        </div>
+        <div class="px-6 py-4">
+            <div id="test-results" class="space-y-4">
+                <p class="text-gray-500 text-center">Click a test button above to see results here</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function testPayment(method, amount) {
+    const resultsDiv = document.getElementById('test-results');
+    resultsDiv.innerHTML = `
+        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <div class="flex items-center">
+                <div class="flex-shrink-0">
+                    <svg class="h-5 w-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                </div>
+                <div class="ml-3">
+                    <h3 class="text-sm font-medium text-blue-800">Testing ${method.toUpperCase()} Payment</h3>
+                    <p class="text-sm text-blue-700 mt-1">Amount: ₹${amount}</p>
+                    <p class="text-sm text-blue-700">Status: Testing in progress...</p>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // Simulate API call
+    setTimeout(() => {
+        resultsDiv.innerHTML = `
+            <div class="bg-green-50 border border-green-200 rounded-lg p-4">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <svg class="h-5 w-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                    </div>
+                    <div class="ml-3">
+                        <h3 class="text-sm font-medium text-green-800">${method.toUpperCase()} Payment Test Successful</h3>
+                        <p class="text-sm text-green-700 mt-1">Amount: ₹${amount}</p>
+                        <p class="text-sm text-green-700">Status: Payment processed successfully</p>
+                        <p class="text-sm text-green-700">Payment ID: PAY_${Date.now()}</p>
+                    </div>
+                </div>
+            </div>
+        `;
+    }, 2000);
+}
+
+function testCompleteWorkflow() {
+    const resultsDiv = document.getElementById('test-results');
+    resultsDiv.innerHTML = `
+        <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+            <div class="flex items-center">
+                <div class="flex-shrink-0">
+                    <svg class="h-5 w-5 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                </div>
+                <div class="ml-3">
+                    <h3 class="text-sm font-medium text-yellow-800">Testing Complete Workflow</h3>
+                    <p class="text-sm text-yellow-700 mt-1">This will test the entire payment workflow</p>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // Simulate workflow steps
+    setTimeout(() => {
+        resultsDiv.innerHTML = `
+            <div class="space-y-4">
+                <div class="bg-green-50 border border-green-200 rounded-lg p-4">
+                    <h3 class="text-sm font-medium text-green-800">✅ Job Created</h3>
+                    <p class="text-sm text-green-700">Test job created successfully</p>
+                </div>
+                <div class="bg-green-50 border border-green-200 rounded-lg p-4">
+                    <h3 class="text-sm font-medium text-green-800">✅ Job Request Submitted</h3>
+                    <p class="text-sm text-green-700">Freelancer submitted job request</p>
+                </div>
+                <div class="bg-green-50 border border-green-200 rounded-lg p-4">
+                    <h3 class="text-sm font-medium text-green-800">✅ Payment Initiated</h3>
+                    <p class="text-sm text-green-700">Payment of ₹5000 sent to escrow</p>
+                </div>
+                <div class="bg-green-50 border border-green-200 rounded-lg p-4">
+                    <h3 class="text-sm font-medium text-green-800">✅ Work Submitted</h3>
+                    <p class="text-sm text-green-700">Freelancer submitted completed work</p>
+                </div>
+                <div class="bg-green-50 border border-green-200 rounded-lg p-4">
+                    <h3 class="text-sm font-medium text-green-800">✅ Work Confirmed</h3>
+                    <p class="text-sm text-green-700">Recruiter confirmed work quality</p>
+                </div>
+                <div class="bg-green-50 border border-green-200 rounded-lg p-4">
+                    <h3 class="text-sm font-medium text-green-800">✅ Payment Released</h3>
+                    <p class="text-sm text-green-700">Payment released to freelancer</p>
+                </div>
+            </div>
+        `;
+    }, 3000);
+}
+</script>
+{% endblock %}
