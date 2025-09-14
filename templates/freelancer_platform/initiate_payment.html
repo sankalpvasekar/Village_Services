@@ -1,0 +1,89 @@
+{% extends 'freelancer_platform/base.html' %}
+{% load static %}
+
+{% block title %}Initiate Payment{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-credit-card me-2"></i>Initiate Payment
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <!-- Job Request Details -->
+                    <div class="alert alert-info">
+                        <h5><i class="fas fa-info-circle me-2"></i>Job Request Details</h5>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <strong>Job Title:</strong> {{ job_request.job.title }}<br>
+                                <strong>Freelancer:</strong> {{ job_request.freelancer.user.get_full_name|default:job_request.freelancer.user.username }}<br>
+                                <strong>Proposal Type:</strong> {{ job_request.get_proposal_type_display }}
+                            </div>
+                            <div class="col-md-6">
+                                <strong>Proposed Rate:</strong> ₹{{ job_request.proposed_rate }}<br>
+                                <strong>Duration:</strong> {{ job_request.proposed_duration }} {{ job_request.get_proposal_type_display|lower }}<br>
+                                <strong>Total Amount:</strong> <span class="text-success fw-bold">₹{{ job_request.proposed_rate }}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Payment Form -->
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        
+                        <div class="mb-3">
+                            <label for="{{ form.amount.id_for_label }}" class="form-label">
+                                <i class="fas fa-rupee-sign me-1"></i>Payment Amount
+                            </label>
+                            {{ form.amount }}
+                            {% if form.amount.errors %}
+                                <div class="text-danger">
+                                    {% for error in form.amount.errors %}
+                                        <small>{{ error }}</small>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="{{ form.payment_method.id_for_label }}" class="form-label">
+                                <i class="fas fa-credit-card me-1"></i>Payment Method
+                            </label>
+                            {{ form.payment_method }}
+                            {% if form.payment_method.errors %}
+                                <div class="text-danger">
+                                    {% for error in form.payment_method.errors %}
+                                        <small>{{ error }}</small>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Escrow Information -->
+                        <div class="alert alert-warning">
+                            <h6><i class="fas fa-shield-alt me-2"></i>Escrow Protection</h6>
+                            <p class="mb-0">
+                                Your payment will be held in escrow until the freelancer completes the work and you confirm it. 
+                                This protects both parties and ensures fair transactions.
+                            </p>
+                        </div>
+
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a href="{% url 'dashboard' %}" class="btn btn-secondary me-md-2">
+                                <i class="fas fa-arrow-left me-1"></i>Cancel
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-credit-card me-1"></i>Initiate Payment
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

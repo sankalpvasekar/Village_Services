@@ -11,8 +11,9 @@ import json
 import requests
 import os
 import re, json as pyjson
-from .models import UserProfile, Job, Application, JobRequest, WorkExample
-from .forms import UserRegistrationForm, JobForm, ApplicationForm, JobRequestForm, FreelancerProfileForm, WorkExampleForm
+from .models import UserProfile, Job, Application, JobRequest, WorkExample, Payment, WorkTracking, Complaint
+from .forms import UserRegistrationForm, JobForm, ApplicationForm, JobRequestForm, FreelancerProfileForm, WorkExampleForm, PaymentForm, WorkTrackingForm, ComplaintForm, AdminComplaintResolutionForm
+from django.utils import timezone
 from .ai_utils import get_skill_recommendations, get_similar_skills, get_job_matching_score
 from .api_config import get_api_config, get_skill_config, is_api_enabled
 
@@ -1138,3 +1139,541 @@ def delete_job(request, job_id):
         messages.error(request, 'Job not found or you do not have permission to delete it.')
     
     return redirect('dashboard')
+
+# Payment and Escrow System Views
+@login_required
+def initiate_payment(request, job_request_id):
+    """Initiate payment for an approved job request (recruiter only)"""
+    try:
+        user_profile = UserProfile.objects.get(user=request.user)
+        if user_profile.user_type != 'recruiter':
+            messages.error(request, 'Only recruiters can initiate payments.')
+            return redirect('dashboard')
+        
+        job_request = get_object_or_404(JobRequest, id=job_request_id, status='approved')
+        
+        # Check if payment already exists
+        if hasattr(job_request, 'payment'):
+            messages.warning(request, 'Payment already initiated for this job request.')
+            return redirect('payment_detail', payment_id=job_request.payment.id)
+        
+        if request.method == 'POST':
+            form = PaymentForm(request.POST)
+            if form.is_valid():
+                payment = form.save(commit=False)
+                payment.job_request = job_request
+                payment.recruiter = user_profile
+                payment.freelancer = job_request.freelancer
+                payment.amount = job_request.proposed_rate
+                payment.save()
+                
+                # Create work tracking record
+                WorkTracking.objects.create(
+                    payment=payment,
+                    freelancer=job_request.freelancer
+                )
+                
+                messages.success(request, 'Payment initiated successfully! Please complete the payment to start the work.')
+                return redirect('payment_detail', payment_id=payment.id)
+        else:
+            form = PaymentForm(initial={'amount': job_request.proposed_rate})
+        
+        context = {
+            'form': form,
+            'job_request': job_request,
+        }
+        return render(request, 'freelancer_platform/initiate_payment.html', context)
+    
+    except UserProfile.DoesNotExist:
+        messages.error(request, 'User profile not found.')
+        return redirect('home')
+
+@login_required
+def payment_detail(request, payment_id):
+    """View payment details"""
+    payment = get_object_or_404(Payment, id=payment_id)
+    user_profile = UserProfile.objects.get(user=request.user)
+    
+    # Check if user has access to this payment
+    if user_profile not in [payment.recruiter, payment.freelancer]:
+        messages.error(request, 'You do not have access to this payment.')
+        return redirect('dashboard')
+    
+    work_tracking = payment.work_tracking.first()
+    complaints = payment.complaints.all()
+    
+    context = {
+        'payment': payment,
+        'work_tracking': work_tracking,
+        'complaints': complaints,
+        'user_profile': user_profile,
+    }
+    return render(request, 'freelancer_platform/payment_detail.html', context)
+
+@login_required
+def confirm_payment(request, payment_id):
+    """Confirm payment completion (recruiter only)"""
+    try:
+        user_profile = UserProfile.objects.get(user=request.user)
+        if user_profile.user_type != 'recruiter':
+            messages.error(request, 'Only recruiters can confirm payments.')
+            return redirect('dashboard')
+        
+        payment = get_object_or_404(Payment, id=payment_id, recruiter=user_profile)
+        
+        if payment.status != 'pending':
+            messages.warning(request, 'Payment is not in pending status.')
+            return redirect('payment_detail', payment_id=payment.id)
+        
+        # In a real implementation, this would integrate with Razorpay
+        # For now, we'll simulate payment completion
+        from django.utils import timezone
+        payment.status = 'completed'
+        payment.paid_at = timezone.now()
+        payment.save()
+        
+        messages.success(request, 'Payment confirmed! Work can now begin.')
+        return redirect('payment_detail', payment_id=payment.id)
+    
+    except UserProfile.DoesNotExist:
+        messages.error(request, 'User profile not found.')
+        return redirect('home')
+
+@login_required
+def release_payment(request, payment_id):
+    """Release payment to freelancer (recruiter only)"""
+    try:
+        user_profile = UserProfile.objects.get(user=request.user)
+        if user_profile.user_type != 'recruiter':
+            messages.error(request, 'Only recruiters can release payments.')
+            return redirect('dashboard')
+        
+        payment = get_object_or_404(Payment, id=payment_id, recruiter=user_profile)
+        
+        if not payment.can_be_released():
+            messages.error(request, 'Payment cannot be released at this time.')
+            return redirect('payment_detail', payment_id=payment.id)
+        
+        if payment.release_payment():
+            messages.success(request, 'Payment released to freelancer successfully!')
+        else:
+            messages.error(request, 'Failed to release payment.')
+        
+        return redirect('payment_detail', payment_id=payment.id)
+    
+    except UserProfile.DoesNotExist:
+        messages.error(request, 'User profile not found.')
+        return redirect('home')
+
+# Work Tracking Views
+@login_required
+def submit_work(request, payment_id):
+    """Submit work completion (freelancer only)"""
+    try:
+        user_profile = UserProfile.objects.get(user=request.user)
+        if user_profile.user_type != 'freelancer':
+            messages.error(request, 'Only freelancers can submit work.')
+            return redirect('dashboard')
+        
+        payment = get_object_or_404(Payment, id=payment_id, freelancer=user_profile)
+        work_tracking = get_object_or_404(WorkTracking, payment=payment, freelancer=user_profile)
+        
+        if work_tracking.status == 'completed':
+            messages.warning(request, 'Work has already been submitted.')
+            return redirect('payment_detail', payment_id=payment.id)
+        
+        if request.method == 'POST':
+            form = WorkTrackingForm(request.POST, request.FILES)
+            if form.is_valid():
+                work_tracking.completion_notes = form.cleaned_data['completion_notes']
+                if form.cleaned_data['before_photos']:
+                    work_tracking.before_photos = form.cleaned_data['before_photos']
+                if form.cleaned_data['after_photos']:
+                    work_tracking.after_photos = form.cleaned_data['after_photos']
+                if form.cleaned_data['completion_video']:
+                    work_tracking.completion_video = form.cleaned_data['completion_video']
+                
+                work_tracking.mark_as_completed()
+                messages.success(request, 'Work submitted successfully! Waiting for recruiter confirmation.')
+                return redirect('payment_detail', payment_id=payment.id)
+        else:
+            form = WorkTrackingForm()
+        
+        context = {
+            'form': form,
+            'payment': payment,
+            'work_tracking': work_tracking,
+        }
+        return render(request, 'freelancer_platform/submit_work.html', context)
+    
+    except UserProfile.DoesNotExist:
+        messages.error(request, 'User profile not found.')
+        return redirect('home')
+
+# Complaint System Views
+@login_required
+def file_complaint(request, payment_id):
+    """File a complaint (both recruiter and freelancer)"""
+    try:
+        user_profile = UserProfile.objects.get(user=request.user)
+        payment = get_object_or_404(Payment, id=payment_id)
+        
+        # Check if user has access to this payment
+        if user_profile not in [payment.recruiter, payment.freelancer]:
+            messages.error(request, 'You do not have access to this payment.')
+            return redirect('dashboard')
+        
+        # Check if complaint already exists
+        existing_complaint = Complaint.objects.filter(payment=payment, complainant=user_profile).first()
+        if existing_complaint:
+            messages.warning(request, 'You have already filed a complaint for this payment.')
+            return redirect('complaint_detail', complaint_id=existing_complaint.id)
+        
+        if request.method == 'POST':
+            form = ComplaintForm(request.POST, request.FILES, user_type=user_profile.user_type)
+            if form.is_valid():
+                complaint = form.save(commit=False)
+                complaint.payment = payment
+                complaint.complainant = user_profile
+                complaint.save()
+                
+                # Update payment status to disputed
+                payment.status = 'disputed'
+                payment.save()
+                
+                messages.success(request, 'Complaint filed successfully! Admin will review it soon.')
+                return redirect('complaint_detail', complaint_id=complaint.id)
+        else:
+            form = ComplaintForm(user_type=user_profile.user_type)
+        
+        context = {
+            'form': form,
+            'payment': payment,
+            'user_profile': user_profile,
+        }
+        return render(request, 'freelancer_platform/file_complaint.html', context)
+    
+    except UserProfile.DoesNotExist:
+        messages.error(request, 'User profile not found.')
+        return redirect('home')
+
+@login_required
+def complaint_detail(request, complaint_id):
+    """View complaint details"""
+    complaint = get_object_or_404(Complaint, id=complaint_id)
+    user_profile = UserProfile.objects.get(user=request.user)
+    
+    # Check if user has access to this complaint
+    if user_profile not in [complaint.complainant, complaint.payment.recruiter, complaint.payment.freelancer]:
+        messages.error(request, 'You do not have access to this complaint.')
+        return redirect('dashboard')
+    
+    context = {
+        'complaint': complaint,
+        'user_profile': user_profile,
+    }
+    return render(request, 'freelancer_platform/complaint_detail.html', context)
+
+@login_required
+def my_complaints(request):
+    """View user's complaints"""
+    try:
+        user_profile = UserProfile.objects.get(user=request.user)
+        complaints = Complaint.objects.filter(complainant=user_profile).order_by('-created_at')
+        
+        context = {
+            'complaints': complaints,
+            'user_profile': user_profile,
+        }
+        return render(request, 'freelancer_platform/my_complaints.html', context)
+    
+    except UserProfile.DoesNotExist:
+        messages.error(request, 'User profile not found.')
+        return redirect('home')
+
+# Admin Views
+@login_required
+def admin_complaints(request):
+    """Admin view for managing complaints"""
+    if not request.user.is_staff:
+        messages.error(request, 'Access denied. Admin privileges required.')
+        return redirect('dashboard')
+    
+    complaints = Complaint.objects.filter(status__in=['open', 'under_review']).order_by('-created_at')
+    
+    context = {
+        'complaints': complaints,
+    }
+    return render(request, 'freelancer_platform/admin_complaints.html', context)
+
+@login_required
+def resolve_complaint(request, complaint_id):
+    """Resolve complaint (admin only)"""
+    if not request.user.is_staff:
+        messages.error(request, 'Access denied. Admin privileges required.')
+        return redirect('dashboard')
+    
+    complaint = get_object_or_404(Complaint, id=complaint_id)
+    
+    if request.method == 'POST':
+        form = AdminComplaintResolutionForm(request.POST)
+        if form.is_valid():
+            resolution_type = form.cleaned_data['resolution_type']
+            admin_notes = form.cleaned_data['admin_notes']
+            resolution_amount = form.cleaned_data['resolution_amount']
+            
+            complaint.resolve_complaint(request.user, resolution_type, admin_notes, resolution_amount)
+            messages.success(request, 'Complaint resolved successfully!')
+            return redirect('admin_complaints')
+    else:
+        form = AdminComplaintResolutionForm()
+    
+    context = {
+        'form': form,
+        'complaint': complaint,
+    }
+    return render(request, 'freelancer_platform/resolve_complaint.html', context)
+
+@login_required
+def submit_work(request, payment_id):
+    """Freelancer submits work for review"""
+    try:
+        user_profile = UserProfile.objects.get(user=request.user)
+        if user_profile.user_type != 'freelancer':
+            messages.error(request, 'Access denied. Freelancer privileges required.')
+            return redirect('dashboard')
+    except UserProfile.DoesNotExist:
+        messages.error(request, 'User profile not found.')
+        return redirect('dashboard')
+    
+    payment = get_object_or_404(Payment, id=payment_id, freelancer=user_profile)
+    
+    # Check if payment is in correct status
+    if payment.status not in ['paid', 'work_submitted']:
+        messages.error(request, 'Work cannot be submitted at this time.')
+        return redirect('freelancer_dashboard')
+    
+    # Get or create work tracking
+    work_tracking, created = WorkTracking.objects.get_or_create(
+        payment=payment,
+        freelancer=user_profile,
+        defaults={'status': 'not_started'}
+    )
+    
+    if request.method == 'POST':
+        form = WorkTrackingForm(request.POST, request.FILES, instance=work_tracking)
+        if form.is_valid():
+            work_tracking = form.save(commit=False)
+            work_tracking.status = 'submitted'
+            work_tracking.submitted_at = timezone.now()
+            work_tracking.save()
+            
+            # Update payment status
+            payment.status = 'work_submitted'
+            payment.work_submitted_at = timezone.now()
+            payment.save()
+            
+            messages.success(request, 'Work submitted successfully! Waiting for recruiter review.')
+            return redirect('freelancer_dashboard')
+    else:
+        form = WorkTrackingForm(instance=work_tracking)
+    
+    context = {
+        'form': form,
+        'payment': payment,
+        'work_tracking': work_tracking,
+    }
+    return render(request, 'freelancer_platform/submit_work.html', context)
+
+@login_required
+def review_work(request, payment_id):
+    """Recruiter reviews and confirms work"""
+    try:
+        user_profile = UserProfile.objects.get(user=request.user)
+        if user_profile.user_type != 'recruiter':
+            messages.error(request, 'Access denied. Recruiter privileges required.')
+            return redirect('dashboard')
+    except UserProfile.DoesNotExist:
+        messages.error(request, 'User profile not found.')
+        return redirect('dashboard')
+    
+    payment = get_object_or_404(Payment, id=payment_id, recruiter=user_profile)
+    
+    # Check if payment is in correct status
+    if payment.status not in ['work_submitted', 'work_confirmed']:
+        messages.error(request, 'Work cannot be reviewed at this time.')
+        return redirect('recruiter_dashboard')
+    
+    work_tracking = get_object_or_404(WorkTracking, payment=payment)
+    
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        recruiter_feedback = request.POST.get('recruiter_feedback', '')
+        
+        if action == 'approve':
+            work_tracking.status = 'completed'
+            work_tracking.reviewed_at = timezone.now()
+            work_tracking.recruiter_feedback = recruiter_feedback
+            work_tracking.save()
+            
+            # Update payment status
+            payment.status = 'work_confirmed'
+            payment.work_confirmed_at = timezone.now()
+            payment.work_confirmed_by = user_profile
+            payment.save()
+            
+            # Release payment
+            payment.status = 'released'
+            payment.released_at = timezone.now()
+            payment.save()
+            
+            messages.success(request, 'Work approved and payment released to freelancer!')
+            
+        elif action == 'reject':
+            work_tracking.status = 'rejected'
+            work_tracking.reviewed_at = timezone.now()
+            work_tracking.recruiter_feedback = recruiter_feedback
+            work_tracking.save()
+            
+            messages.success(request, 'Work rejected. Freelancer will be notified to resubmit.')
+            
+        elif action == 'request_revision':
+            work_tracking.status = 'revision_requested'
+            work_tracking.reviewed_at = timezone.now()
+            work_tracking.recruiter_feedback = recruiter_feedback
+            work_tracking.revision_notes = recruiter_feedback
+            work_tracking.save()
+            
+            messages.success(request, 'Revision requested. Freelancer will be notified.')
+        
+        return redirect('recruiter_dashboard')
+    
+    context = {
+        'payment': payment,
+        'work_tracking': work_tracking,
+    }
+    return render(request, 'freelancer_platform/review_work.html', context)
+
+@login_required
+def payment_history(request):
+    """View payment history for both freelancers and recruiters"""
+    try:
+        user_profile = UserProfile.objects.get(user=request.user)
+    except UserProfile.DoesNotExist:
+        messages.error(request, 'User profile not found.')
+        return redirect('dashboard')
+    
+    if user_profile.user_type == 'freelancer':
+        payments = Payment.objects.filter(freelancer=user_profile).order_by('-created_at')
+    else:
+        payments = Payment.objects.filter(recruiter=user_profile).order_by('-created_at')
+    
+    context = {
+        'user_profile': user_profile,
+        'payments': payments,
+    }
+    return render(request, 'freelancer_platform/payment_history.html', context)
+
+@login_required
+def file_complaint_general(request):
+    """File a general complaint"""
+    try:
+        user_profile = UserProfile.objects.get(user=request.user)
+    except UserProfile.DoesNotExist:
+        messages.error(request, 'User profile not found.')
+        return redirect('dashboard')
+    
+    if request.method == 'POST':
+        form = ComplaintForm(request.POST)
+        if form.is_valid():
+            complaint = form.save(commit=False)
+            complaint.complainant = user_profile
+            complaint.save()
+            messages.success(request, 'Complaint filed successfully. We will review it shortly.')
+            return redirect('my_complaints')
+    else:
+        form = ComplaintForm()
+    
+    context = {
+        'form': form,
+        'user_profile': user_profile,
+    }
+    return render(request, 'freelancer_platform/file_complaint.html', context)
+
+@login_required
+def file_complaint_for_job(request, job_id):
+    """File a complaint for a specific job"""
+    try:
+        user_profile = UserProfile.objects.get(user=request.user)
+    except UserProfile.DoesNotExist:
+        messages.error(request, 'User profile not found.')
+        return redirect('dashboard')
+    
+    job = get_object_or_404(Job, id=job_id)
+    
+    # Check if user has a payment for this job
+    if user_profile.user_type == 'freelancer':
+        payment = Payment.objects.filter(job_request__job=job, freelancer=user_profile).first()
+    else:
+        payment = Payment.objects.filter(job_request__job=job, recruiter=user_profile).first()
+    
+    if not payment:
+        messages.error(request, 'No payment found for this job.')
+        return redirect('dashboard')
+    
+    if request.method == 'POST':
+        form = ComplaintForm(request.POST, request.FILES, user_type=user_profile.user_type)
+        if form.is_valid():
+            complaint = form.save(commit=False)
+            complaint.payment = payment
+            complaint.complainant = user_profile
+            complaint.save()
+            
+            messages.success(request, 'Complaint filed successfully! Admin will review it soon.')
+            return redirect('my_complaints')
+    else:
+        form = ComplaintForm(user_type=user_profile.user_type)
+    
+    context = {
+        'form': form,
+        'job': job,
+        'payment': payment,
+    }
+    return render(request, 'freelancer_platform/file_complaint.html', context)
+
+@login_required
+def payment_test(request):
+    """Payment testing interface"""
+    try:
+        user_profile = UserProfile.objects.get(user=request.user)
+    except UserProfile.DoesNotExist:
+        messages.error(request, 'User profile not found.')
+        return redirect('dashboard')
+    
+    # Get payment statistics
+    if user_profile.user_type == 'freelancer':
+        payments = Payment.objects.filter(freelancer=user_profile)
+    else:
+        payments = Payment.objects.filter(recruiter=user_profile)
+    
+    # Payment method breakdown
+    payment_methods = {}
+    for method, _ in Payment.PAYMENT_METHOD:
+        count = payments.filter(payment_method=method).count()
+        if count > 0:
+            payment_methods[method] = count
+    
+    # Status breakdown
+    status_counts = {}
+    for status, _ in Payment.PAYMENT_STATUS:
+        count = payments.filter(status=status).count()
+        if count > 0:
+            status_counts[status] = count
+    
+    context = {
+        'user_profile': user_profile,
+        'total_payments': payments.count(),
+        'payment_methods': payment_methods,
+        'status_counts': status_counts,
+    }
+    return render(request, 'freelancer_platform/payment_test.html', context)

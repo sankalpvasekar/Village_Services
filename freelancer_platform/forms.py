@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
-from .models import UserProfile, Job, Application, JobRequest, WorkExample
+from .models import UserProfile, Job, Application, JobRequest, WorkExample, Payment, WorkTracking, Complaint
 
 class UserRegistrationForm(UserCreationForm):
     USER_TYPES = [
@@ -32,7 +32,7 @@ class UserRegistrationForm(UserCreationForm):
 class JobForm(forms.ModelForm):
     class Meta:
         model = Job
-        fields = ['title', 'description', 'category', 'company_name', 'location', 'salary_min', 'salary_max', 'required_skills', 'duration_months']
+        fields = ['title', 'description', 'category', 'company_name', 'location', 'salary_min', 'salary_max', 'required_skills', 'duration_months', 'duration_unit']
         widgets = {
             'title': forms.TextInput(attrs={'class': 'form-control'}),
             'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 5}),
@@ -43,14 +43,22 @@ class JobForm(forms.ModelForm):
             'salary_max': forms.NumberInput(attrs={'class': 'form-control'}),
             'required_skills': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
             'duration_months': forms.NumberInput(attrs={'class': 'form-control'}),
+            'duration_unit': forms.Select(attrs={'class': 'form-select'}),
         }
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Make fields optional
+        self.fields['company_name'].required = False
+        self.fields['location'].required = False
+        self.fields['salary_min'].required = False
+        self.fields['salary_max'].required = False
 
 class ApplicationForm(forms.ModelForm):
     class Meta:
         model = Application
-        fields = ['cover_letter', 'proposed_rate']
+        fields = ['proposed_rate']
         widgets = {
-            'cover_letter': forms.Textarea(attrs={'class': 'form-control', 'rows': 5}),
             'proposed_rate': forms.NumberInput(attrs={'class': 'form-control'}),
         }
 
@@ -147,4 +155,107 @@ class WorkExampleForm(forms.ModelForm):
             'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
             'work_type': forms.Select(attrs={'class': 'form-select'}),
             'file': forms.FileInput(attrs={'class': 'form-control'}),
-        } 
+        }
+
+class PaymentForm(forms.ModelForm):
+    class Meta:
+        model = Payment
+        fields = ['amount', 'payment_method']
+        widgets = {
+            'amount': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
+            'payment_method': forms.Select(attrs={'class': 'form-select'}),
+        }
+
+class WorkTrackingForm(forms.ModelForm):
+    class Meta:
+        model = WorkTracking
+        fields = ['completion_notes', 'before_photos', 'after_photos', 'completion_video', 'work_files']
+        widgets = {
+            'completion_notes': forms.Textarea(attrs={
+                'class': 'form-control', 
+                'rows': 5,
+                'placeholder': 'Describe the work completed, any challenges faced, and final results...'
+            }),
+            'before_photos': forms.FileInput(attrs={
+                'class': 'form-control',
+                'accept': 'image/*'
+            }),
+            'after_photos': forms.FileInput(attrs={
+                'class': 'form-control',
+                'accept': 'image/*'
+            }),
+            'completion_video': forms.FileInput(attrs={
+                'class': 'form-control',
+                'accept': 'video/*'
+            }),
+            'work_files': forms.FileInput(attrs={
+                'class': 'form-control',
+                'accept': '.pdf,.doc,.docx,.txt,.zip,.rar'
+            }),
+        }
+
+class ComplaintForm(forms.ModelForm):
+    class Meta:
+        model = Complaint
+        fields = ['complaint_type', 'title', 'description', 'evidence_photos', 'evidence_videos', 'evidence_documents']
+        widgets = {
+            'complaint_type': forms.Select(attrs={'class': 'form-select'}),
+            'title': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Brief title for your complaint'
+            }),
+            'description': forms.Textarea(attrs={
+                'class': 'form-control', 
+                'rows': 6,
+                'placeholder': 'Please provide detailed information about your complaint. Include dates, amounts, and any relevant details...'
+            }),
+            'evidence_photos': forms.FileInput(attrs={
+                'class': 'form-control',
+                'accept': 'image/*'
+            }),
+            'evidence_videos': forms.FileInput(attrs={
+                'class': 'form-control',
+                'accept': 'video/*'
+            }),
+            'evidence_documents': forms.FileInput(attrs={
+                'class': 'form-control',
+                'accept': '.pdf,.doc,.docx,.txt'
+            }),
+        }
+    
+    def __init__(self, *args, **kwargs):
+        user_type = kwargs.pop('user_type', None)
+        super().__init__(*args, **kwargs)
+        
+        # Filter complaint types based on user type
+        if user_type == 'recruiter':
+            self.fields['complaint_type'].choices = [
+                ('recruiter_payment', 'Paid but no work done'),
+                ('recruiter_quality', 'Work quality is poor'),
+            ]
+        elif user_type == 'freelancer':
+            self.fields['complaint_type'].choices = [
+                ('freelancer_payment', 'Work done but no payment'),
+                ('freelancer_delay', 'Payment delayed'),
+            ]
+
+class AdminComplaintResolutionForm(forms.Form):
+    resolution_type = forms.ChoiceField(
+        choices=Complaint.RESOLUTION_TYPES,
+        widget=forms.Select(attrs={'class': 'form-select'})
+    )
+    admin_notes = forms.CharField(
+        widget=forms.Textarea(attrs={
+            'class': 'form-control', 
+            'rows': 4,
+            'placeholder': 'Admin notes about the resolution...'
+        }),
+        required=False
+    )
+    resolution_amount = forms.DecimalField(
+        max_digits=10, 
+        decimal_places=2,
+        widget=forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
+        required=False,
+        help_text="Required for partial payment resolution"
+    ) 
