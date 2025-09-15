@@ -38,10 +38,14 @@ deactivate () {
 deactivate nondestructive
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 VIRTUAL_ENV="C:\Users\DDR\Documents\Django\Local_Free_Lancer\venv"
 =======
 VIRTUAL_ENV="C:\Users\DDR\Documents\sankalp_folder\Local_Free_Lancer\venv"
 >>>>>>> 29d8db2d3b215d8409fd8145e93e0e02b2e12a74
+=======
+VIRTUAL_ENV="C:\all projects of engg\Local_Free_Lancer\venv"
+>>>>>>> 4c7ed2024d8b25b8f6bfe4ba01232357702a13e5
 export VIRTUAL_ENV
 
 _OLD_VIRTUAL_PATH="$PATH"

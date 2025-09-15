@@ -9,10 +9,14 @@ if defined _OLD_CODEPAGE (
 )
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 set VIRTUAL_ENV=C:\Users\DDR\Documents\Django\Local_Free_Lancer\venv
 =======
 set VIRTUAL_ENV=C:\Users\DDR\Documents\sankalp_folder\Local_Free_Lancer\venv
 >>>>>>> 29d8db2d3b215d8409fd8145e93e0e02b2e12a74
+=======
+set VIRTUAL_ENV=C:\all projects of engg\Local_Free_Lancer\venv
+>>>>>>> 4c7ed2024d8b25b8f6bfe4ba01232357702a13e5
 
 if not defined PROMPT set PROMPT=$P$G
 
