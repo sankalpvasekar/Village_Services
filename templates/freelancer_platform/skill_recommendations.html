@@ -1,4 +1,4 @@
-{% extends 'freelancer_platform/base.html' %}
+{% comment %} {% extends 'freelancer_platform/base.html' %}
 
 {% block title %}AI Skill Recommendations - Local Free-Lancer{% endblock %}
 
@@ -17,9 +17,9 @@
                 </label>
                 <div class="flex gap-2">
                     <input type="text" 
-                        id="skill-input" 
-                        placeholder="e.g., cooking, tailoring, electrical work..."
-                        class="flex-1 form-control">
+                           id="skill-input" 
+                           placeholder="e.g., cooking, tailoring, electrical work..."
+                           class="flex-1 form-control">
                     <button id="get-recommendations" 
                             class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-primary hover:bg-secondary focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-colors">
                         <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -150,4 +150,4 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 </script>
-{% endblock %} 
+{% endblock %}  {% endcomment %}

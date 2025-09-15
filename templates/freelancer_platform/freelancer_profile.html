@@ -220,69 +220,86 @@
 </div>
 
 <script>
-    // This script remains exactly as you provided it.
-    function previewImage(input) {
-        const file = input.files[0];
-        const maxSize = parseInt(input.getAttribute('data-max-size')) || 5242880; // 5MB default
-        if (file) {
-            if (file.size > maxSize) {
-                alert('File size must be less than 5MB');
-                input.value = '';
-                return;
-            }
-            if (!file.type.startsWith('image/')) {
-                alert('Please select an image file');
-                input.value = '';
-                return;
-            }
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                let previewContainer = document.getElementById('image-preview');
-                if (!previewContainer) {
-                    previewContainer = document.createElement('div');
-                    previewContainer.id = 'image-preview';
-                    previewContainer.className = 'mt-3';
-                    input.parentNode.appendChild(previewContainer);
-                }
-                previewContainer.innerHTML = `
-                    <div class="flex items-center space-x-4">
-                        <img src="${e.target.result}" alt="Preview" class="w-20 h-20 rounded-full object-cover border-2 border-gray-200">
-                        <div>
-                            <p class="text-sm text-gray-600">${file.name}</p>
-                            <p class="text-xs text-gray-400">${(file.size / 1024 / 1024).toFixed(2)} MB</p>
-                            <button type="button" onclick="removePreview()" class="text-xs text-red-600 hover:text-red-800">Remove</button>
-                        </div>
-                    </div>`;
-            };
-            reader.readAsDataURL(file);
-        }
-    }
-    function removePreview() {
-        const previewContainer = document.getElementById('image-preview');
-        const fileInput = document.querySelector('input[type="file"]');
-        if (previewContainer) {
-            previewContainer.remove();
-        }
-        if (fileInput) {
-            fileInput.value = '';
-        }
-    }
-    document.querySelector('form').addEventListener('submit', function(e) {
-        const fileInput = document.querySelector('input[type="file"]');
-        const file = fileInput.files[0];
-        if (file) {
-            const maxSize = parseInt(fileInput.getAttribute('data-max-size')) || 5242880;
-            if (file.size > maxSize) {
-                e.preventDefault();
-                alert('File size must be less than 5MB');
-                return false;
-            }
-            if (!file.type.startsWith('image/')) {
-                e.preventDefault();
-                alert('Please select an image file');
-                return false;
-            }
-        }
-    });
+    // Image preview and validation functionality
+    function previewImage(input) {
+        const file = input.files[0];
+        const maxSize = parseInt(input.getAttribute('data-max-size')) || 5242880; // 5MB default
+        
+        if (file) {
+            // Check file size
+            if (file.size > maxSize) {
+                alert('File size must be less than 5MB');
+                input.value = '';
+                return;
+            }
+            
+            // Check file type
+            if (!file.type.startsWith('image/')) {
+                alert('Please select an image file');
+                input.value = '';
+                return;
+            }
+            
+            // Create preview
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                // Find or create preview container
+                let previewContainer = document.getElementById('image-preview');
+                if (!previewContainer) {
+                    previewContainer = document.createElement('div');
+                    previewContainer.id = 'image-preview';
+                    previewContainer.className = 'mt-3';
+                    input.parentNode.appendChild(previewContainer);
+                }
+                
+                previewContainer.innerHTML = `
+                    <div class="flex items-center space-x-4">
+                        <img src="${e.target.result}" alt="Preview" class="w-20 h-20 rounded-full object-cover border-2 border-gray-200">
+                        <div>
+                            <p class="text-sm text-gray-600">${file.name}</p>
+                            <p class="text-xs text-gray-400">${(file.size / 1024 / 1024).toFixed(2)} MB</p>
+                            <button type="button" onclick="removePreview()" class="text-xs text-red-600 hover:text-red-800">
+                                Remove
+                            </button>
+                        </div>
+                    </div>
+                `;
+            };
+            reader.readAsDataURL(file);
+        }
+    }
+    
+    function removePreview() {
+        const previewContainer = document.getElementById('image-preview');
+        const fileInput = document.querySelector('input[type="file"]');
+        if (previewContainer) {
+            previewContainer.remove();
+        }
+        if (fileInput) {
+            fileInput.value = '';
+        }
+    }
+    
+    // Form validation
+    document.querySelector('form').addEventListener('submit', function(e) {
+        const fileInput = document.querySelector('input[type="file"]');
+        const file = fileInput.files[0];
+        
+        if (file) {
+            const maxSize = parseInt(fileInput.getAttribute('data-max-size')) || 5242880;
+            
+            if (file.size > maxSize) {
+                e.preventDefault();
+                alert('File size must be less than 5MB');
+                return false;
+            }
+            
+            if (!file.type.startsWith('image/')) {
+                e.preventDefault();
+                alert('Please select an image file');
+                return false;
+            }
+        }
+    });
 </script>
 {% endblock %}

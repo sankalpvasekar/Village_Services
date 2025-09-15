@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Real-Time Chat</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Set Firebase debug logging for development
+        setLogLevel('Debug');
+
+        // Global variables provided by the environment
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+
+        let db, auth, userId;
+
+        // Initialize Firebase on window load
+        window.onload = async function() {
+            try {
+                const app = initializeApp(firebaseConfig);
+                auth = getAuth(app);
+                db = getFirestore(app);
+
+                // Sign in the user
+                if (initialAuthToken) {
+                    await signInWithCustomToken(auth, initialAuthToken);
+                } else {
+                    await signInAnonymously(auth);
+                }
+
+                // Set up auth state listener
+                onAuthStateChanged(auth, (user) => {
+                    if (user) {
+                        userId = user.uid;
+                        document.getElementById('user-id').textContent = userId;
+                        // Start listening for messages after user is authenticated
+                        setupMessageListener();
+                    } else {
+                        console.log("User is signed out.");
+                        // Handle signed-out state if necessary
+                    }
+                });
+
+                document.getElementById('send-message-form').addEventListener('submit', handleSendMessage);
+                
+            } catch (error) {
+                console.error("Error initializing Firebase:", error);
+            }
+        };
+        
+        // This is a placeholder for a specific chat ID, which in a real app would be passed
+        // dynamically (e.g., from the job posting).
+        const CHAT_ID = "job_12345";
+        document.getElementById('chat-id-display').textContent = CHAT_ID;
+        
+        async function setupMessageListener() {
+            if (!db || !userId) {
+                console.error("Database or User ID not available.");
+                return;
+            }
+            
+            // Get the public chat collection reference
+            const chatCollectionPath = `/artifacts/${appId}/public/data/chats/${CHAT_ID}/messages`;
+            const chatCollectionRef = collection(db, chatCollectionPath);
+
+            // Create a query to order messages by timestamp
+            const q = query(chatCollectionRef, orderBy('timestamp'));
+
+            // Set up a real-time listener to get new messages
+            onSnapshot(q, (snapshot) => {
+                const chatBox = document.getElementById('chat-box');
+                // Clear the chat box before adding new messages
+                chatBox.innerHTML = '';
+                snapshot.forEach((doc) => {
+                    const message = doc.data();
+                    const messageElement = document.createElement('div');
+                    
+                    const isCurrentUser = message.senderId === userId;
+                    const alignmentClass = isCurrentUser ? 'justify-end' : 'justify-start';
+                    const messageBg = isCurrentUser ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-800';
+                    const senderText = isCurrentUser ? 'You' : `User ID: ${message.senderId.substring(0, 8)}`;
+                    
+                    messageElement.className = `flex ${alignmentClass} mb-2`;
+                    messageElement.innerHTML = `
+                        <div class="rounded-lg p-3 max-w-2/3 ${messageBg}">
+                            <div class="text-xs font-semibold mb-1">${senderText}</div>
+                            <div>${message.text}</div>
+                        </div>
+                    `;
+                    chatBox.appendChild(messageElement);
+                });
+                // Scroll to the bottom of the chat box
+                chatBox.scrollTop = chatBox.scrollHeight;
+            }, (error) => {
+                console.error("Error listening to messages:", error);
+            });
+        }
+        
+        async function handleSendMessage(event) {
+            event.preventDefault();
+            const messageInput = document.getElementById('message-input');
+            const messageText = messageInput.value.trim();
+
+            if (messageText === '' || !db || !userId) {
+                return;
+            }
+
+            try {
+                // Get the public chat collection reference
+                const chatCollectionPath = `/artifacts/${appId}/public/data/chats/${CHAT_ID}/messages`;
+                const chatCollectionRef = collection(db, chatCollectionPath);
+                
+                await addDoc(chatCollectionRef, {
+                    senderId: userId,
+                    text: messageText,
+                    timestamp: new Date().toISOString(), // Use ISO string for consistent sorting
+                });
+
+                messageInput.value = ''; // Clear the input field
+                
+            } catch (e) {
+                console.error("Error adding document: ", e);
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center min-h-screen p-4">
+    <div class="w-full max-w-2xl bg-white rounded-xl shadow-2xl overflow-hidden flex flex-col h-[80vh]">
+        <!-- Chat Header -->
+        <div class="bg-primary text-white p-4 text-center border-b border-gray-200">
+            <h1 class="text-xl font-bold">Real-Time Chat</h1>
+            <p class="text-sm">Chat ID: <span id="chat-id-display" class="font-semibold"></span></p>
+            <p class="text-sm">Your User ID: <span id="user-id" class="font-semibold"></span></p>
+        </div>
+
+        <!-- Chat Messages Container -->
+        <div id="chat-box" class="flex-grow p-4 overflow-y-auto space-y-4">
+            <!-- Messages will be dynamically loaded here -->
+            <div class="flex justify-center items-center h-full text-gray-400 text-sm">Loading messages...</div>
+        </div>
+
+        <!-- Message Input Form -->
+        <form id="send-message-form" class="p-4 border-t border-gray-200 flex items-center gap-2">
+            <input type="text" id="message-input" placeholder="Type a message..." required
+                   class="flex-grow px-4 py-2 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors">
+            <button type="submit"
+                    class="bg-blue-500 text-white rounded-full p-2 hover:bg-blue-600 transition-colors">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
+                </svg>
+            </button>
+        </form>
+    </div>
+</body>
+</html>

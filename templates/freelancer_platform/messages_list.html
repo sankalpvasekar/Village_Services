@@ -1,0 +1,34 @@
+{% extends 'freelancer_platform/base.html' %}
+
+{% block title %}Messages{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto px-4 py-10">
+    <h1 class="text-3xl font-bold text-gray-900 mb-8">💼 Messages</h1>
+
+    <div class="space-y-5">
+        {% for profile in user_profiles %}
+            <div class="flex items-center justify-between bg-white border border-gray-200 rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow duration-300">
+                <div class="flex items-center space-x-4">
+                    <div class="bg-blue-600 text-white rounded-full w-10 h-10 flex items-center justify-center text-lg font-semibold">
+                        {{ profile.user.username|slice:":1"|upper }}
+                    </div>
+
+                    <div>
+                        <h2 class="text-lg font-medium text-gray-800">{{ profile.user.username }}</h2>
+                        <p class="text-gray-500 text-sm">📱 {{ profile.phone_number }}</p>
+                    </div>
+                </div>
+
+                <a href="https://wa.me/{{ profile.phone_number }}" target="_blank"
+                   class="flex items-center space-x-2 bg-gradient-to-r from-green-400 to-green-600 hover:from-green-500 hover:to-green-700 text-white font-medium px-3 py-2 rounded-lg transition-colors duration-200">
+                   <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                       <path d="M..." /> <!-- WhatsApp icon SVG path -->
+                   </svg>
+                   <span>Message</span>
+                </a>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

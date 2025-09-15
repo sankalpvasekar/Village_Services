@@ -1,5 +1,6 @@
 from django.urls import path
 from . import views
+from .views import messages_list_view
 
 urlpatterns = [
     path('', views.home, name='home'),
@@ -35,6 +36,7 @@ urlpatterns = [
     path('file-complaint/', views.file_complaint_general, name='file_complaint_general'),
     path('payment/<int:payment_id>/file-complaint/', views.file_complaint, name='file_complaint'),
     path('job/<int:job_id>/file-complaint/', views.file_complaint_for_job, name='file_complaint_for_job'),
+    path('workspace/', views.workspace_detail, name='workspace_detail'),
     path('complaint/<int:complaint_id>/', views.complaint_detail, name='complaint_detail'),
     path('my-complaints/', views.my_complaints, name='my_complaints'),
     
@@ -51,4 +53,7 @@ urlpatterns = [
     path('api/legal-resources/', views.legal_resources_api, name='legal_resources_api'),
     path('api/health-resources/', views.health_resources_api, name='health_resources_api'),
     path('api/emergency-resources/', views.emergency_resources_api, name='emergency_resources_api'),
+
+
+    path('messages/', messages_list_view, name='messages_list'),
 ] 

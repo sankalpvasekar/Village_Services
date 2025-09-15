@@ -9,6 +9,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 import json
 import requests
+from .models import Message
 import os
 import re, json as pyjson
 from .models import UserProfile, Job, Application, JobRequest, WorkExample, Payment, WorkTracking, Complaint
@@ -1677,3 +1678,103 @@ def payment_test(request):
         'status_counts': status_counts,
     }
     return render(request, 'freelancer_platform/payment_test.html', context)
+
+
+@login_required
+def chat_page(request, other_user_id):
+    """
+    Renders the chat page between the current user and another user.
+    """
+    other_user = get_object_or_404(User, id=other_user_id)
+    context = {
+        'other_user_id': other_user_id,
+        'other_user_name': other_user.get_full_name() or other_user.username
+    }
+    return render(request, 'freelancer_platform/chat_app.html', context)
+
+@login_required
+@csrf_exempt
+def send_message(request):
+    """
+    Handles an AJAX POST request to send a new message.
+    It expects a JSON payload with 'receiver_id' and 'message_content'.
+    """
+    # This view is marked as csrf_exempt for simplicity in an AJAX setup.
+    # In a production environment, you should include a CSRF token in your
+    # front-end requests to prevent security vulnerabilities.
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            receiver_id = data.get('receiver_id')
+            message_content = data.get('message_content')
+            
+            # Ensure both receiver and message content are provided
+            if not receiver_id or not message_content:
+                return JsonResponse({'success': False, 'error': 'Missing receiver or message content'}, status=400)
+
+            # Get the receiver User object or return a 404 error
+            receiver = get_object_or_404(User, id=receiver_id)
+
+            # Create and save the new message
+            Message.objects.create(
+                sender=request.user,
+                receiver=receiver,
+                message_content=message_content
+            )
+
+            # Return a success response
+            return JsonResponse({'success': True, 'message': 'Message sent successfully'})
+        except json.JSONDecodeError:
+            return JsonResponse({'success': False, 'error': 'Invalid JSON format'}, status=400)
+    
+    # Return an error if the request method is not POST
+    return JsonResponse({'success': False, 'error': 'Invalid request method'}, status=405)
+
+
+@login_required
+def get_messages(request, user_id):
+    """
+    Handles an AJAX GET request to retrieve messages between the current
+    user and a specified other user.
+    """
+    try:
+        # Get the other user based on the ID from the URL
+        other_user = get_object_or_404(User, id=user_id)
+
+        # Query for all messages where the current user and the other user
+        # are either the sender or receiver. The Q object is used to
+        # combine these conditions.
+        messages = Message.objects.filter(
+            Q(sender=request.user, receiver=other_user) | 
+            Q(sender=other_user, receiver=request.user)
+        ).select_related('sender', 'receiver') # Optimize with select_related
+
+        # Serialize the messages into a list of dictionaries for the JSON response
+        message_list = []
+        for msg in messages:
+            message_list.append({
+                'sender': msg.sender.username,
+                'receiver': msg.receiver.username,
+                'message_content': msg.message_content,
+                'timestamp': msg.timestamp.isoformat() # ISO format for easy parsing in JS
+            })
+
+        # Return the list of messages in a JSON response
+        return JsonResponse({'success': True, 'messages': message_list})
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
+    
+
+def messages_list_view(request):
+    # Get all users except the current user
+    user_profiles = UserProfile.objects.exclude(user=request.user)
+    return render(request, 'freelancer_platform/messages_list.html', {'user_profiles': user_profiles})
+@login_required
+def workspace_detail(request):
+    # Get the correct UserProfile instance
+    user_profile = UserProfile.objects.get(user=request.user)
+
+    # Fetch approved jobs for this freelancer profile
+    approved_jobs = Application.objects.filter(freelancer=user_profile, status='approved').select_related('job')
+
+    return render(request, 'freelancer_platform/workspace_detail.html', {'approved_jobs': approved_jobs})

@@ -447,3 +447,31 @@ class Complaint(models.Model):
         elif resolution_type == 'partial_payment' and resolution_amount:
             # Handle partial payment logic here
             pass
+
+
+class Message(models.Model):
+    """
+    Model to represent a private message between two users.
+    
+    The 'sender' is the user who created the message.
+    The 'receiver' is the user who receives the message.
+    The 'message_content' is the text of the message itself.
+    The 'timestamp' records when the message was sent.
+    """
+    sender = models.ForeignKey(User, related_name='sent_messages', on_delete=models.CASCADE)
+    receiver = models.ForeignKey(User, related_name='received_messages', on_delete=models.CASCADE)
+    message = models.TextField()
+    timestamp = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        """
+        Returns a string representation of the message.
+        """
+        return f'Message from {self.sender.username} to {self.receiver.username} at {self.timestamp.strftime("%Y-%m-%d %H:%M:%S")}'
+
+    class Meta:
+        """
+        Meta options for the Message model.
+        """
+        # Order messages by timestamp in ascending order
+        ordering = ['timestamp']
