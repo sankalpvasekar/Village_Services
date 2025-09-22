@@ -108,3 +108,10 @@ class Command(BaseCommand):
         self.stdout.write(f'  Job ID: {job.id}')
         self.stdout.write(f'  Job Request ID: {job_request.id}')
 
+
+
+
+
+
+
+

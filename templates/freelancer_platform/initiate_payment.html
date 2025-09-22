@@ -4,86 +4,221 @@
 {% block title %}Initiate Payment{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
-    <div class="row justify-content-center">
-        <div class="col-md-8">
-            <div class="card">
-                <div class="card-header bg-primary text-white">
-                    <h4 class="mb-0">
-                        <i class="fas fa-credit-card me-2"></i>Initiate Payment
-                    </h4>
+<div class="bg-gray-50 min-h-screen py-10 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-3xl mx-auto">
+        <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
+            <div class="bg-gradient-to-r from-gray-800 to-gray-900 p-6">
+                <h2 class="text-2xl font-bold text-white flex items-center">
+                    <i class="fas fa-credit-card mr-3"></i>
+                    Initiate Payment
+                </h2>
+            </div>
+
+            <div class="p-6 sm:p-8 space-y-6">
+                <div class="bg-gray-50 border border-gray-200 rounded-lg p-5">
+                    <h3 class="text-lg font-semibold text-gray-800 flex items-center mb-4">
+                        <i class="fas fa-info-circle mr-2 text-gray-500"></i>
+                        Job Request Details
+                    </h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-3 text-sm text-gray-600">
+                        <div>
+                            <span class="font-medium text-gray-900">Job Title:</span> {{ job_request.job.title }}
+                        </div>
+                        <div>
+                            <span class="font-medium text-gray-900">Proposed Rate:</span> ₹{{ job_request.proposed_rate }}
+                        </div>
+                        <div>
+                            <span class="font-medium text-gray-900">Freelancer:</span> {{ job_request.freelancer.user.get_full_name|default:job_request.freelancer.user.username }}
+                        </div>
+                        <div>
+                            <span class="font-medium text-gray-900">Duration:</span> {{ job_request.proposed_duration }} {{ job_request.get_proposal_type_display|lower }}
+                        </div>
+                        <div>
+                            <span class="font-medium text-gray-900">Proposal Type:</span> {{ job_request.get_proposal_type_display }}
+                        </div>
+                        <div>
+                            <span class="font-medium text-gray-900">Total Amount:</span>
+                            <span class="text-green-600 font-bold text-base">₹{{ job_request.proposed_rate }}</span>
+                        </div>
+                    </div>
                 </div>
-                <div class="card-body">
-                    <!-- Job Request Details -->
-                    <div class="alert alert-info">
-                        <h5><i class="fas fa-info-circle me-2"></i>Job Request Details</h5>
-                        <div class="row">
-                            <div class="col-md-6">
-                                <strong>Job Title:</strong> {{ job_request.job.title }}<br>
-                                <strong>Freelancer:</strong> {{ job_request.freelancer.user.get_full_name|default:job_request.freelancer.user.username }}<br>
-                                <strong>Proposal Type:</strong> {{ job_request.get_proposal_type_display }}
+
+                {% if job_request.freelancer.upi_id or job_request.freelancer.qr_code or job_request.freelancer.bank_account_number %}
+                <div class="bg-green-50 border border-green-200 rounded-lg p-5">
+                    <h3 class="text-lg font-semibold text-green-800 flex items-center mb-4">
+                        <i class="fas fa-qrcode mr-2"></i>
+                        Freelancer Payment Details
+                    </h3>
+                    <div class="flex flex-col md:flex-row items-start md:items-center gap-6">
+                        <div class="flex-grow space-y-2 text-sm text-gray-700">
+                            {% if job_request.freelancer.upi_id %}
+                            <p><strong class="font-medium text-gray-900">UPI ID:</strong> {{ job_request.freelancer.upi_id }}</p>
+                            {% endif %}
+                            {% if job_request.freelancer.bank_account_number %}
+                            <p><strong class="font-medium text-gray-900">Bank:</strong> {{ job_request.freelancer.bank_name|default:"—" }}</p>
+                            <p><strong class="font-medium text-gray-900">Account No.:</strong> {{ job_request.freelancer.bank_account_number }}</p>
+                            <p><strong class="font-medium text-gray-900">IFSC:</strong> {{ job_request.freelancer.bank_ifsc|default:"—" }}</p>
+                            {% endif %}
+                        </div>
+                        {% if job_request.freelancer.qr_code %}
+                        <div class="flex-shrink-0 text-center">
+                            <img src="{{ job_request.freelancer.qr_code.url }}" alt="Payment QR" class="rounded-lg border-2 border-gray-200 p-1 max-h-36 mx-auto">
+                            <p class="text-xs text-gray-500 mt-2">Scan to pay via any UPI app</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endif %}
+
+                {% if user_profile.user_type == 'recruiter' and user_profile.bank_account_number %}
+                <div class="bg-blue-50 border border-blue-200 rounded-lg p-5 text-sm">
+                    <h3 class="text-lg font-semibold text-blue-800 flex items-center mb-3">
+                        <i class="fas fa-university mr-2"></i>
+                        Your Bank Details
+                    </h3>
+                    <div class="space-y-1 text-gray-700">
+                        <p><strong class="font-medium text-gray-900">Bank:</strong> {{ user_profile.bank_name|default:"—" }}</p>
+                        <p><strong class="font-medium text-gray-900">Account No.:</strong> {{ user_profile.bank_account_number }}</p>
+                        <p><strong class="font-medium text-gray-900">IFSC:</strong> {{ user_profile.bank_ifsc|default:"—" }}</p>
+                    </div>
+                </div>
+                {% endif %}
+
+                <form method="post" enctype="multipart/form-data" class="space-y-6">
+                    {% csrf_token %}
+                    
+                    <div>
+                        <label for="{{ form.amount.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                            <i class="fas fa-rupee-sign mr-1"></i>Payment Amount
+                        </label>
+                        {{ form.amount }}
+                        {% if form.amount.errors %}
+                            <div class="text-red-600 text-sm mt-1">
+                                {% for error in form.amount.errors %}<small>{{ error }}</small>{% endfor %}
                             </div>
-                            <div class="col-md-6">
-                                <strong>Proposed Rate:</strong> ₹{{ job_request.proposed_rate }}<br>
-                                <strong>Duration:</strong> {{ job_request.proposed_duration }} {{ job_request.get_proposal_type_display|lower }}<br>
-                                <strong>Total Amount:</strong> <span class="text-success fw-bold">₹{{ job_request.proposed_rate }}</span>
+                        {% endif %}
+                    </div>
+
+                    <div>
+                        <label for="{{ form.payment_method.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                            <i class="fas fa-credit-card mr-1"></i>Payment Method
+                        </label>
+                        {{ form.payment_method }}
+                        {% if form.payment_method.errors %}
+                            <div class="text-red-600 text-sm mt-1">
+                                {% for error in form.payment_method.errors %}<small>{{ error }}</small>{% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div id="method-help">
+                        <div id="help-razorpay" class="hidden bg-blue-50 text-blue-800 p-4 rounded-lg text-sm">
+                            <h4 class="font-semibold mb-1 flex items-center"><i class="fas fa-bolt mr-2"></i>Razorpay</h4>
+                            <p>You will be redirected to Razorpay for a secure online payment. The status will update automatically upon success.</p>
+                        </div>
+                        <div id="help-upi" class="hidden bg-blue-50 text-blue-800 p-4 rounded-lg text-sm">
+                            <h4 class="font-semibold mb-1 flex items-center"><i class="fas fa-mobile-alt mr-2"></i>UPI</h4>
+                            <p>Pay using any UPI app. You can verify the payment on the payment details page once completed.</p>
+                        </div>
+                        <div id="help-scanner" class="hidden bg-blue-50 text-blue-800 p-4 rounded-lg text-sm">
+                            <h4 class="font-semibold mb-1 flex items-center"><i class="fas fa-qrcode mr-2"></i>QR Scanner</h4>
+                            <p>Scan the freelancer's QR code to pay. Please keep a screenshot of the confirmation for your records.</p>
+                        </div>
+                        <div id="help-cash" class="hidden bg-yellow-100 border-l-4 border-yellow-500 text-yellow-800 p-4 rounded-lg text-sm">
+                            <h4 class="font-semibold mb-1 flex items-center"><i class="fas fa-money-bill-wave mr-2"></i>Cash</h4>
+                            <p>Cash payment is not recommended. If used, ensure both parties acknowledge receipt in messages to prevent disputes.</p>
+                        </div>
+                    </div>
+
+                    <div id="method-inputs" class="mt-4 space-y-4">
+                        <div id="inputs-upi" class="hidden">
+                            <label class="block text-sm font-medium text-gray-700 mb-1"><i class="fas fa-receipt mr-1"></i>UPI Reference ID (optional)</label>
+                            <input type="text" name="upi_reference" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-gray-500 focus:border-gray-500 sm:text-sm" placeholder="Enter UPI transaction/reference ID">
+                        </div>
+                        <div id="inputs-scanner" class="hidden">
+                            <label class="block text-sm font-medium text-gray-700 mb-1"><i class="fas fa-file-upload mr-1"></i>Upload Payment Screenshot (optional)</label>
+                            <input type="file" name="qr_screenshot" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-gray-100 file:text-gray-700 hover:file:bg-gray-200" accept="image/*">
+                        </div>
+                        <div id="inputs-cash" class="hidden">
+                            <label class="block text-sm font-medium text-gray-700 mb-1"><i class="fas fa-file-signature mr-1"></i>Upload Acknowledgement (optional)</label>
+                            <input type="file" name="cash_acknowledgement" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-gray-100 file:text-gray-700 hover:file:bg-gray-200" accept="image/*,.pdf">
+                        </div>
+                        <div id="inputs-bank_transfer" class="hidden space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1"><i class="fas fa-exchange-alt mr-1"></i>Bank Transfer Reference (optional)</label>
+                                <input type="text" name="bank_reference" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-gray-500 focus:border-gray-500 sm:text-sm" placeholder="Enter bank transaction reference">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1"><i class="fas fa-file-upload mr-1"></i>Upload Proof (optional)</label>
+                                <input type="file" name="bank_proof" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-gray-100 file:text-gray-700 hover:file:bg-gray-200" accept="image/*,.pdf">
                             </div>
                         </div>
                     </div>
 
-                    <!-- Payment Form -->
-                    <form method="post" enctype="multipart/form-data">
-                        {% csrf_token %}
-                        
-                        <div class="mb-3">
-                            <label for="{{ form.amount.id_for_label }}" class="form-label">
-                                <i class="fas fa-rupee-sign me-1"></i>Payment Amount
-                            </label>
-                            {{ form.amount }}
-                            {% if form.amount.errors %}
-                                <div class="text-danger">
-                                    {% for error in form.amount.errors %}
-                                        <small>{{ error }}</small>
-                                    {% endfor %}
-                                </div>
-                            {% endif %}
-                        </div>
+                    <div class="bg-yellow-50 border-l-4 border-yellow-400 text-yellow-800 p-4 rounded-r-lg">
+                        <h4 class="font-bold flex items-center"><i class="fas fa-shield-alt mr-2"></i>Escrow Protection</h4>
+                        <p class="mt-1 text-sm">Your payment will be held securely in escrow until the work is completed and approved by you. This ensures a fair transaction for everyone.</p>
+                    </div>
 
-                        <div class="mb-3">
-                            <label for="{{ form.payment_method.id_for_label }}" class="form-label">
-                                <i class="fas fa-credit-card me-1"></i>Payment Method
-                            </label>
-                            {{ form.payment_method }}
-                            {% if form.payment_method.errors %}
-                                <div class="text-danger">
-                                    {% for error in form.payment_method.errors %}
-                                        <small>{{ error }}</small>
-                                    {% endfor %}
-                                </div>
-                            {% endif %}
-                        </div>
-
-                        <!-- Escrow Information -->
-                        <div class="alert alert-warning">
-                            <h6><i class="fas fa-shield-alt me-2"></i>Escrow Protection</h6>
-                            <p class="mb-0">
-                                Your payment will be held in escrow until the freelancer completes the work and you confirm it. 
-                                This protects both parties and ensures fair transactions.
-                            </p>
-                        </div>
-
-                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                            <a href="{% url 'dashboard' %}" class="btn btn-secondary me-md-2">
-                                <i class="fas fa-arrow-left me-1"></i>Cancel
-                            </a>
-                            <button type="submit" class="btn btn-primary">
-                                <i class="fas fa-credit-card me-1"></i>Initiate Payment
-                            </button>
-                        </div>
-                    </form>
-                </div>
+                    <div class="flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-4 space-y-2 space-y-reverse sm:space-y-0 pt-4">
+                        <a href="{% url 'dashboard' %}" class="w-full sm:w-auto text-center bg-white hover:bg-gray-100 text-gray-800 font-semibold py-2 px-4 border border-gray-300 rounded-lg shadow-sm transition duration-150 ease-in-out">
+                            <i class="fas fa-arrow-left mr-1"></i>Cancel
+                        </a>
+                        <button type="submit" class="w-full sm:w-auto bg-gray-800 hover:bg-gray-900 text-white font-semibold py-2 px-4 border border-transparent rounded-lg shadow-sm transition duration-150 ease-in-out focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-700">
+                            <i class="fas fa-credit-card mr-1"></i>Initiate Payment
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const select = document.getElementById('{{ form.payment_method.id_for_label }}');
+    // Ensure the select element has Tailwind classes if not added via forms.py
+    if (select) {
+        select.className += ' mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-gray-500 focus:border-gray-500 sm:text-sm rounded-md';
+    }
+
+    const sections = {
+        'razorpay': document.getElementById('help-razorpay'),
+        'upi': document.getElementById('help-upi'),
+        'scanner': document.getElementById('help-scanner'),
+        'cash': document.getElementById('help-cash'),
+        'bank_transfer': null // No help text for bank transfer
+    };
+    const inputs = {
+        'upi': document.getElementById('inputs-upi'),
+        'scanner': document.getElementById('inputs-scanner'),
+        'cash': document.getElementById('inputs-cash'),
+        'bank_transfer': document.getElementById('inputs-bank_transfer'),
+    };
+
+    function updateVisibility() {
+        // Hide all help sections and input blocks
+        Object.values(sections).forEach(el => { if (el) el.classList.add('hidden'); });
+        Object.values(inputs).forEach(el => { if (el) el.classList.add('hidden'); });
+        
+        const selectedValue = select.value;
+        
+        // Show the relevant help section
+        if (sections[selectedValue]) {
+            sections[selectedValue].classList.remove('hidden');
+        }
+        
+        // Show the relevant input block
+        if (inputs[selectedValue]) {
+            inputs[selectedValue].classList.remove('hidden');
+        }
+    }
+
+    if (select) {
+        select.addEventListener('change', updateVisibility);
+        // Initial call to set the correct state on page load
+        updateVisibility();
+    }
+});
+</script>
 {% endblock %}

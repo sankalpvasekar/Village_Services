@@ -26,6 +26,12 @@ class UserProfile(models.Model):
     user_type = models.CharField(max_length=10, choices=USER_TYPES)
     phone = models.CharField(max_length=15, blank=True, null=True)
     address = models.TextField(blank=True, null=True)
+    upi_id = models.CharField(max_length=100, blank=True, null=True, help_text="UPI ID for receiving payments")
+    qr_code = models.ImageField(upload_to='payments/qr_codes/', blank=True, null=True, help_text="QR code image for payments")
+    bank_account_name = models.CharField(max_length=100, blank=True, null=True, help_text="Name on bank account")
+    bank_account_number = models.CharField(max_length=34, blank=True, null=True, help_text="Bank account number")
+    bank_ifsc = models.CharField(max_length=20, blank=True, null=True, help_text="IFSC / Bank identifier")
+    bank_name = models.CharField(max_length=100, blank=True, null=True, help_text="Bank name")
     skills = models.TextField(blank=True, null=True, help_text="Comma-separated list of skills")
     selected_skills = models.JSONField(default=list, blank=True, help_text="Selected skills from categories")
     experience_years = models.IntegerField(default=0, validators=[MinValueValidator(0), MaxValueValidator(50)])
@@ -123,6 +129,7 @@ class Job(models.Model):
     required_skills = models.TextField()
     duration_months = models.IntegerField(default=1, help_text="Duration value")
     duration_unit = models.CharField(max_length=10, choices=DURATION_UNITS, default='months', help_text="Duration unit")
+    workers_needed = models.IntegerField(default=1, validators=[MinValueValidator(1)], help_text="Number of workers needed")
     status = models.CharField(max_length=15, choices=JOB_STATUS, default='open')
     recruiter = models.ForeignKey(UserProfile, on_delete=models.CASCADE, related_name='posted_jobs')
     assigned_freelancer = models.ForeignKey(UserProfile, on_delete=models.SET_NULL, null=True, blank=True, related_name='assigned_jobs')
@@ -142,34 +149,19 @@ class Job(models.Model):
     def can_be_deleted(self):
         """
         Check if the job can be deleted by the recruiter.
-        Jobs can be deleted if:
-        1. No job requests have been approved yet
-        2. OR the job period has expired
+        Rules:
+        - If any job request is approved, it cannot be deleted (unless mutual cancel flow implemented later).
+        - Otherwise it can be deleted.
         """
-        from django.utils import timezone
-        
-        # Check if any job request has been approved
+        # Any approved request forbids deletion
         has_approved_request = self.job_requests.filter(status='approved').exists()
-        
-        # Check if job period has expired
-        is_expired = self.expires_at and timezone.now() > self.expires_at
-        
-        # Can be deleted if no approved requests OR job has expired
-        return not has_approved_request or is_expired
+        return not has_approved_request
     
     def get_deletion_status(self):
-        """
-        Get a human-readable status about job deletion
-        """
-        from django.utils import timezone
-        
-        if self.can_be_deleted():
-            if self.expires_at and timezone.now() > self.expires_at:
-                return "Job period expired - can be deleted"
-            else:
-                return "No approved requests - can be deleted"
-        else:
-            return "Has approved requests - cannot be deleted until job period ends"
+        """Human-readable deletion status based on current rules."""
+        if self.job_requests.filter(status='approved').exists():
+            return "Has approved requests - cannot be deleted"
+        return "No approved requests - can be deleted"
 
 class Application(models.Model):
     APPLICATION_STATUS = [

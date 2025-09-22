@@ -17,6 +17,7 @@ urlpatterns = [
     path('job-request/<int:request_id>/approve/', views.approve_job_request, name='approve_job_request'),
     path('job-request/<int:request_id>/reject/', views.reject_job_request, name='reject_job_request'),
     path('freelancer-profile/', views.freelancer_profile, name='freelancer_profile'),
+    path('recruiter-profile/', views.recruiter_profile, name='recruiter_profile'),
     path('add-work-example/', views.add_work_example, name='add_work_example'),
     path('delete-work-example/<int:example_id>/', views.delete_work_example, name='delete_work_example'),
     path('skill-based-jobs/', views.skill_based_jobs, name='skill_based_jobs'),
@@ -30,7 +31,7 @@ urlpatterns = [
     path('payment/<int:payment_id>/submit-work/', views.submit_work, name='submit_work'),
     path('payment/<int:payment_id>/review-work/', views.review_work, name='review_work'),
     path('payment-history/', views.payment_history, name='payment_history'),
-    path('payment-test/', views.payment_test, name='payment_test'),
+    # Removed payment testing route
     
     # Complaint System URLs
     path('file-complaint/', views.file_complaint_general, name='file_complaint_general'),

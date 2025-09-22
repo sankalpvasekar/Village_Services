@@ -13,7 +13,7 @@ from .models import Message
 import os
 import re, json as pyjson
 from .models import UserProfile, Job, Application, JobRequest, WorkExample, Payment, WorkTracking, Complaint
-from .forms import UserRegistrationForm, JobForm, ApplicationForm, JobRequestForm, FreelancerProfileForm, WorkExampleForm, PaymentForm, WorkTrackingForm, ComplaintForm, AdminComplaintResolutionForm
+from .forms import UserRegistrationForm, JobForm, ApplicationForm, JobRequestForm, FreelancerProfileForm, WorkExampleForm, PaymentForm, WorkTrackingForm, ComplaintForm, AdminComplaintResolutionForm, RecruiterProfileForm, RecruiterUserForm
 from django.utils import timezone
 from .ai_utils import get_skill_recommendations, get_similar_skills, get_job_matching_score
 from .api_config import get_api_config, get_skill_config, is_api_enabled
@@ -1031,6 +1031,41 @@ def freelancer_profile(request):
         return redirect('home')
 
 @login_required
+def recruiter_profile(request):
+    """Recruiter profile: basic info and photo (no skills)."""
+    try:
+        user_profile = UserProfile.objects.get(user=request.user)
+        if user_profile.user_type != 'recruiter':
+            messages.error(request, 'Only recruiters can access this page.')
+            return redirect('dashboard')
+
+        if request.method == 'POST':
+            uform = RecruiterUserForm(request.POST, instance=request.user)
+            pform = RecruiterProfileForm(request.POST, request.FILES, instance=user_profile)
+            if uform.is_valid() and pform.is_valid():
+                uform.save()
+                pform.save()
+                messages.success(request, 'Profile updated successfully!')
+                return redirect('recruiter_profile')
+            else:
+                for field, errors in (uform.errors.items() or pform.errors.items()):
+                    for error in errors:
+                        messages.error(request, f'{field}: {error}')
+        else:
+            uform = RecruiterUserForm(instance=request.user)
+            pform = RecruiterProfileForm(instance=user_profile)
+
+        context = {
+            'user_profile': user_profile,
+            'uform': uform,
+            'pform': pform,
+        }
+        return render(request, 'freelancer_platform/recruiter_profile.html', context)
+    except UserProfile.DoesNotExist:
+        messages.error(request, 'User profile not found.')
+        return redirect('home')
+
+@login_required
 def add_work_example(request):
     """Add work example (freelancer only)"""
     try:
@@ -1165,7 +1200,17 @@ def initiate_payment(request, job_request_id):
                 payment.job_request = job_request
                 payment.recruiter = user_profile
                 payment.freelancer = job_request.freelancer
-                payment.amount = job_request.proposed_rate
+                # Prefer user-provided amount; fallback to proposed_rate
+                amount_input = form.cleaned_data.get('amount')
+                computed_amount = amount_input if amount_input is not None else job_request.proposed_rate
+                if computed_amount is None:
+                    form.add_error('amount', 'Amount is required. Please enter an amount.')
+                    context = {
+                        'form': form,
+                        'job_request': job_request,
+                    }
+                    return render(request, 'freelancer_platform/initiate_payment.html', context)
+                payment.amount = computed_amount
                 payment.save()
                 
                 # Create work tracking record
@@ -1177,7 +1222,7 @@ def initiate_payment(request, job_request_id):
                 messages.success(request, 'Payment initiated successfully! Please complete the payment to start the work.')
                 return redirect('payment_detail', payment_id=payment.id)
         else:
-            form = PaymentForm(initial={'amount': job_request.proposed_rate})
+            form = PaymentForm(initial={'amount': job_request.proposed_rate or 0})
         
         context = {
             'form': form,
@@ -1347,10 +1392,13 @@ def file_complaint(request, payment_id):
         else:
             form = ComplaintForm(user_type=user_profile.user_type)
         
+        # Fetch user's complaints for side panel
+        my_complaints = Complaint.objects.filter(complainant=user_profile).order_by('-created_at')[:10]
         context = {
             'form': form,
             'payment': payment,
             'user_profile': user_profile,
+            'my_complaints': my_complaints,
         }
         return render(request, 'freelancer_platform/file_complaint.html', context)
     
@@ -1595,9 +1643,11 @@ def file_complaint_general(request):
     else:
         form = ComplaintForm()
     
+    my_complaints = Complaint.objects.filter(complainant=user_profile).order_by('-created_at')[:10]
     context = {
         'form': form,
         'user_profile': user_profile,
+        'my_complaints': my_complaints,
     }
     return render(request, 'freelancer_platform/file_complaint.html', context)
 
@@ -1635,10 +1685,12 @@ def file_complaint_for_job(request, job_id):
     else:
         form = ComplaintForm(user_type=user_profile.user_type)
     
+    my_complaints = Complaint.objects.filter(complainant=user_profile).order_by('-created_at')[:10]
     context = {
         'form': form,
         'job': job,
         'payment': payment,
+        'my_complaints': my_complaints,
     }
     return render(request, 'freelancer_platform/file_complaint.html', context)
 

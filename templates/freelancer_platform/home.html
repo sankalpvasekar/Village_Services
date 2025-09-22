@@ -5,9 +5,10 @@
 {% block content %}
 <div class="min-h-screen font-sans">
 
-    <!-- Hero Section -->
-    <section class="bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-28">
-        <div class="max-w-6xl mx-auto text-center px-4">
+    {# Hero Section - make its gradient and the internal overlay very transparent #}
+    <section class="bg-gradient-to-r from-blue-600/10 to-indigo-600/10 text-white py-28 relative overflow-hidden backdrop-blur-md rounded-xl mb-8 border border-white/10">
+        {# Removed the separate absolute inset-0 div here, as the section itself has backdrop-blur and a very light gradient #}
+        <div class="max-w-6xl mx-auto text-center px-4 relative z-10">
             <h1 class="text-4xl md:text-5xl font-bold mb-4 animate-pulse">
                 Empowering Communities Through Local Work
             </h1>
@@ -25,52 +26,51 @@
         </div>
     </section>
 
-    <!-- About Section -->
-    <section id="about" class="py-20 bg-gray-50">
+    {# About Section - ensure cards are very transparent and blurred #}
+    <section id="about" class="py-20 text-slate-300">
         <div class="max-w-6xl mx-auto px-4">
             <div class="text-center mb-16">
-                <h2 class="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+                <h2 class="text-3xl md:text-4xl font-bold text-white mb-4">
                     About Local Free-Lancer
                 </h2>
-                <p class="text-lg text-gray-600 max-w-3xl mx-auto">
+                <p class="text-lg text-slate-400 max-w-3xl mx-auto">
                     We empower communities by connecting local talent with job opportunities. Our platform helps workers earn sustainable income while promoting community growth.
                 </p>
             </div>
 
             <div class="grid md:grid-cols-3 gap-8">
-                <!-- Feature Box -->
-                <div class="bg-white p-8 rounded-2xl shadow-lg transform transition-transform duration-300 hover:scale-110 cursor-pointer hover:shadow-2xl">
-                    <div class="w-16 h-16 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full flex items-center justify-center mb-6 text-white">
+                <div class="bg-slate-700/20 p-8 rounded-2xl shadow-lg transform transition-transform duration-300 hover:scale-105 cursor-pointer hover:shadow-2xl border border-white/10 backdrop-blur-md">
+                    <div class="w-16 h-16 bg-gradient-to-r from-primary/80 to-secondary/80 rounded-full flex items-center justify-center mb-6 text-slate-900">
                         <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
                         </svg>
                     </div>
-                    <h3 class="text-xl font-semibold text-gray-900 mb-4">For Local Workers</h3>
-                    <p class="text-gray-600">
+                    <h3 class="text-xl font-semibold text-white mb-4">For Local Workers</h3>
+                    <p class="text-slate-200">
                         Find jobs that match your skills, build your profile, and earn sustainable income while contributing to community growth.
                     </p>
                 </div>
 
-                <div class="bg-white p-8 rounded-2xl shadow-lg transform transition-transform duration-300 hover:scale-110 cursor-pointer hover:shadow-2xl">
-                    <div class="w-16 h-16 bg-gradient-to-r from-green-400 to-green-600 rounded-full flex items-center justify-center mb-6 text-white">
+                <div class="bg-slate-700/20 p-8 rounded-2xl shadow-lg transform transition-transform duration-300 hover:scale-105 cursor-pointer hover:shadow-2xl border border-white/10 backdrop-blur-md">
+                    <div class="w-16 h-16 bg-gradient-to-r from-green-400/80 to-green-600/80 rounded-full flex items-center justify-center mb-6 text-white">
                         <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2-2v2m8 0V6a2 2 0 012 2v6a2 2 0 01-2 2H8a2 2 0 01-2-2V8a2 2 0 012-2V6"></path>
                         </svg>
                     </div>
-                    <h3 class="text-xl font-semibold text-gray-900 mb-4">For Job Recruiters</h3>
-                    <p class="text-gray-600">
+                    <h3 class="text-xl font-semibold text-white mb-4">For Job Recruiters</h3>
+                    <p class="text-slate-200">
                         Post opportunities and connect with skilled local talent. Find the perfect candidates while supporting your community.
                     </p>
                 </div>
 
-                <div class="bg-white p-8 rounded-2xl shadow-lg transform transition-transform duration-300 hover:scale-110 cursor-pointer hover:shadow-2xl">
-                    <div class="w-16 h-16 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center mb-6 text-white">
+                <div class="bg-slate-700/20 p-8 rounded-2xl shadow-lg transform transition-transform duration-300 hover:scale-105 cursor-pointer hover:shadow-2xl border border-white/10 backdrop-blur-md">
+                    <div class="w-16 h-16 bg-gradient-to-r from-purple-500/80 to-pink-500/80 rounded-full flex items-center justify-center mb-6 text-white">
                         <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
                         </svg>
                     </div>
-                    <h3 class="text-xl font-semibold text-gray-900 mb-4">Poverty Reduction</h3>
-                    <p class="text-gray-600">
+                    <h3 class="text-xl font-semibold text-white mb-4">Poverty Reduction</h3>
+                    <p class="text-slate-200">
                         Support local economic growth and reduce poverty by connecting talent with opportunities in your community.
                     </p>
                 </div>
@@ -78,44 +78,42 @@
         </div>
     </section>
 
-    <!-- Registration Section -->
-    <section id="register-options" class="py-20 bg-white">
+    {# Registration Section - make cards very transparent and blurred #}
+    <section id="register-options" class="py-20 text-slate-300">
         <div class="max-w-6xl mx-auto px-4">
             <div class="text-center mb-16">
-                <h2 class="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Join Our Community</h2>
-                <p class="text-lg text-gray-600 max-w-3xl mx-auto">Choose your role and start making a difference in your community</p>
+                <h2 class="text-3xl md:text-4xl font-bold text-white mb-4">Join Our Community</h2>
+                <p class="text-lg text-slate-400 max-w-3xl mx-auto">Choose your role and start making a difference in your community</p>
             </div>
 
             <div class="grid md:grid-cols-2 gap-12">
-                <!-- Local Worker Card -->
-                <div class="bg-gradient-to-tr from-blue-500 to-indigo-500 p-8 rounded-3xl shadow-2xl transform transition-transform duration-300 hover:scale-110 cursor-pointer text-white">
+                <div class="bg-gradient-to-tr from-primary/20 to-indigo-500/20 p-8 rounded-3xl shadow-2xl transform transition-transform duration-300 hover:scale-105 cursor-pointer text-white border border-white/10 backdrop-blur-xl">
                     <div class="text-center mb-6">
                         <h3 class="text-2xl font-bold mb-2">I'm a Local Worker</h3>
                         <p>Find job opportunities and build your career.</p>
                     </div>
                     <ul class="mb-6 space-y-3">
-                        <li class="flex items-center gap-2"><span class="font-bold">✔</span> Find local jobs</li>
-                        <li class="flex items-center gap-2"><span class="font-bold">✔</span> Build your profile</li>
-                        <li class="flex items-center gap-2"><span class="font-bold">✔</span> Access AI job recommendations</li>
-                        <li class="flex items-center gap-2"><span class="font-bold">✔</span> Community resources</li>
+                        <li class="flex items-center gap-2"><span class="font-bold text-white">✔</span> Find local jobs</li>
+                        <li class="flex items-center gap-2"><span class="font-bold text-white">✔</span> Build your profile</li>
+                        <li class="flex items-center gap-2"><span class="font-bold text-white">✔</span> Access AI job recommendations</li>
+                        <li class="flex items-center gap-2"><span class="font-bold text-white">✔</span> Community resources</li>
                     </ul>
                     <div class="space-y-3">
-                        <a href="{% url 'register' %}?type=freelancer" class="block w-full bg-white text-blue-600 font-semibold py-3 rounded-lg hover:bg-gray-100 transition-all text-center">Register as Worker</a>
-                        <a href="{% url 'login' %}?type=freelancer" class="block w-full border border-white text-white font-semibold py-3 rounded-lg hover:bg-white hover:text-blue-600 transition-all text-center">Login as Worker</a>
+                        <a href="{% url 'register' %}?type=freelancer" class="block w-full bg-white text-primary font-semibold py-3 rounded-lg hover:bg-gray-100 transition-all text-center">Register as Worker</a>
+                        <a href="{% url 'login' %}?type=freelancer" class="block w-full border border-white text-white font-semibold py-3 rounded-lg hover:bg-white hover:text-primary transition-all text-center">Login as Worker</a>
                     </div>
                 </div>
 
-                <!-- Job Recruiter Card -->
-                <div class="bg-gradient-to-tr from-green-400 to-green-600 p-8 rounded-3xl shadow-2xl transform transition-transform duration-300 hover:scale-110 cursor-pointer text-white">
+                <div class="bg-gradient-to-tr from-green-400/20 to-green-600/20 p-8 rounded-3xl shadow-2xl transform transition-transform duration-300 hover:scale-105 cursor-pointer text-white border border-white/10 backdrop-blur-xl">
                     <div class="text-center mb-6">
                         <h3 class="text-2xl font-bold mb-2">I'm a Job Recruiter</h3>
                         <p>Post jobs and find talented local workers.</p>
                     </div>
                     <ul class="mb-6 space-y-3">
-                        <li class="flex items-center gap-2"><span class="font-bold">✔</span> Post job opportunities</li>
-                        <li class="flex items-center gap-2"><span class="font-bold">✔</span> Connect with local talent</li>
-                        <li class="flex items-center gap-2"><span class="font-bold">✔</span> Support community development</li>
-                        <li class="flex items-center gap-2"><span class="font-bold">✔</span> Manage applications easily</li>
+                        <li class="flex items-center gap-2"><span class="font-bold text-white">✔</span> Post job opportunities</li>
+                        <li class="flex items-center gap-2"><span class="font-bold text-white">✔</span> Connect with local talent</li>
+                        <li class="flex items-center gap-2"><span class="font-bold text-white">✔</span> Support community development</li>
+                        <li class="flex items-center gap-2"><span class="font-bold text-white">✔</span> Manage applications easily</li>
                     </ul>
                     <div class="space-y-3">
                         <a href="{% url 'register' %}?type=recruiter" class="block w-full bg-white text-green-600 font-semibold py-3 rounded-lg hover:bg-gray-100 transition-all text-center">Register as Recruiter</a>

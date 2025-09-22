@@ -111,6 +111,48 @@
                                 <p class="text-red-500 text-sm mt-1">{{ form.bio.errors.0 }}</p>
                             {% endif %}
                         </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-semibold text-slate-700 mb-2">UPI ID (optional)</label>
+                                {{ form.upi_id }}
+                                {% if form.upi_id.errors %}
+                                    <p class="text-red-500 text-sm mt-1">{{ form.upi_id.errors.0 }}</p>
+                                {% endif %}
+                                <p class="text-xs text-slate-500 mt-1">Recruiters can pay you on this UPI.</p>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-slate-700 mb-2">QR Code (optional)</label>
+                                {{ form.qr_code }}
+                                {% if form.qr_code.errors %}
+                                    <p class="text-red-500 text-sm mt-1">{{ form.qr_code.errors.0 }}</p>
+                                {% endif %}
+                                <p class="text-xs text-slate-500 mt-1">Upload a payment QR for quick scanner payments.</p>
+                            </div>
+                        </div>
+
+                        <div class="mt-6">
+                            <h4 class="text-lg font-semibold text-slate-900 mb-3">Bank Details (optional)</h4>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-sm font-semibold text-slate-700 mb-2">Account Holder Name</label>
+                                    {{ form.bank_account_name }}
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-semibold text-slate-700 mb-2">Bank Name</label>
+                                    {{ form.bank_name }}
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-semibold text-slate-700 mb-2">Account Number</label>
+                                    {{ form.bank_account_number }}
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-semibold text-slate-700 mb-2">IFSC Code</label>
+                                    {{ form.bank_ifsc }}
+                                </div>
+                            </div>
+                            <p class="text-xs text-slate-500 mt-2">These details may be shown to recruiters during payment initiation.</p>
+                        </div>
                     </div>
                 </div>
                 

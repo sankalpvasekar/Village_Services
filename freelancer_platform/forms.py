@@ -32,7 +32,7 @@ class UserRegistrationForm(UserCreationForm):
 class JobForm(forms.ModelForm):
     class Meta:
         model = Job
-        fields = ['title', 'description', 'category', 'company_name', 'location', 'salary_min', 'salary_max', 'required_skills', 'duration_months', 'duration_unit']
+        fields = ['title', 'description', 'category', 'company_name', 'location', 'salary_min', 'salary_max', 'required_skills', 'duration_months', 'duration_unit', 'workers_needed']
         widgets = {
             'title': forms.TextInput(attrs={'class': 'form-control'}),
             'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 5}),
@@ -44,6 +44,7 @@ class JobForm(forms.ModelForm):
             'required_skills': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
             'duration_months': forms.NumberInput(attrs={'class': 'form-control'}),
             'duration_unit': forms.Select(attrs={'class': 'form-select'}),
+            'workers_needed': forms.NumberInput(attrs={'class': 'form-control', 'min': 1}),
         }
     
     def __init__(self, *args, **kwargs):
@@ -113,7 +114,7 @@ class FreelancerProfileForm(forms.ModelForm):
     
     class Meta:
         model = UserProfile
-        fields = ['phone', 'address', 'skills', 'selected_skills', 'experience_years', 'hourly_rate', 'bio', 'profile_picture']
+        fields = ['phone', 'address', 'skills', 'selected_skills', 'experience_years', 'hourly_rate', 'bio', 'profile_picture', 'upi_id', 'qr_code', 'bank_account_name', 'bank_account_number', 'bank_ifsc', 'bank_name']
         widgets = {
             'phone': forms.TextInput(attrs={'class': 'form-control'}),
             'address': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
@@ -127,6 +128,12 @@ class FreelancerProfileForm(forms.ModelForm):
                 'data-max-size': '5242880',  # 5MB in bytes
                 'onchange': 'previewImage(this)'
             }),
+            'upi_id': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'yourname@upi'}),
+            'qr_code': forms.FileInput(attrs={'class': 'form-control', 'accept': 'image/*'}),
+            'bank_account_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Account holder name'}),
+            'bank_account_number': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Account number'}),
+            'bank_ifsc': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'IFSC code'}),
+            'bank_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Bank name'}),
         }
     
     def clean_profile_picture(self):
@@ -145,6 +152,26 @@ class FreelancerProfileForm(forms.ModelForm):
                 raise forms.ValidationError("Please upload a valid image file (JPG, PNG, or GIF).")
         
         return profile_picture
+
+class RecruiterUserForm(forms.ModelForm):
+    class Meta:
+        model = User
+        fields = ['first_name', 'last_name', 'email']
+        widgets = {
+            'first_name': forms.TextInput(attrs={'class': 'form-control'}),
+            'last_name': forms.TextInput(attrs={'class': 'form-control'}),
+            'email': forms.EmailInput(attrs={'class': 'form-control'}),
+        }
+
+class RecruiterProfileForm(forms.ModelForm):
+    class Meta:
+        model = UserProfile
+        fields = ['phone', 'address', 'profile_picture']
+        widgets = {
+            'phone': forms.TextInput(attrs={'class': 'form-control'}),
+            'address': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+            'profile_picture': forms.FileInput(attrs={'class': 'form-control', 'accept': 'image/*'}),
+        }
 
 class WorkExampleForm(forms.ModelForm):
     class Meta:
