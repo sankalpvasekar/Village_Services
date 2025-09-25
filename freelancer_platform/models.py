@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 from django.core.validators import MinValueValidator, MaxValueValidator
+from django.db import models
 
 class UserProfile(models.Model):
     USER_TYPES = [
@@ -467,3 +468,30 @@ class Message(models.Model):
         """
         # Order messages by timestamp in ascending order
         ordering = ['timestamp']
+
+
+class LocalResource(models.Model):
+    RESOURCE_TYPES = [
+        ('certification', 'Certification'),
+        ('gov_scheme', 'Government Scheme'),
+        ('workshop', 'Local Workshop'),
+        ('exam', 'Skill-Specific Exam'),
+        ('community', 'Community Group'),
+        ('youtube', 'Local YouTube Channel'),
+    ]
+
+    title = models.CharField(max_length=200)
+    description = models.TextField(blank=True, null=True)
+    resource_type = models.CharField(max_length=20, choices=RESOURCE_TYPES)
+    relevance_tags = models.JSONField(default=list, help_text='Tags like: Dabba Service, Painter, Photographer, IT Freelancer')
+    credibility = models.CharField(max_length=200, blank=True, null=True, help_text='e.g., NSDC, Govt Portal, Industry Association')
+    url = models.URLField(max_length=500)
+    location = models.CharField(max_length=120, blank=True, null=True, help_text='City/State for local targeting')
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.title} ({self.resource_type})"

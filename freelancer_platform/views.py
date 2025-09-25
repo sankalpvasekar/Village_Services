@@ -9,10 +9,11 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 import json
 import requests
+from django.core.paginator import Paginator
 from .models import Message
 import os
 import re, json as pyjson
-from .models import UserProfile, Job, Application, JobRequest, WorkExample, Payment, WorkTracking, Complaint
+from .models import UserProfile, Job, Application, JobRequest, WorkExample, Payment, WorkTracking, Complaint, LocalResource
 from .forms import UserRegistrationForm, JobForm, ApplicationForm, JobRequestForm, FreelancerProfileForm, WorkExampleForm, PaymentForm, WorkTrackingForm, ComplaintForm, AdminComplaintResolutionForm, RecruiterProfileForm, RecruiterUserForm
 from django.utils import timezone
 from .ai_utils import get_skill_recommendations, get_similar_skills, get_job_matching_score
@@ -226,30 +227,47 @@ def dashboard(request):
     """User dashboard based on user type"""
     try:
         user_profile = UserProfile.objects.get(user=request.user)
-        
+
         if user_profile.user_type == 'freelancer':
             # Freelancer dashboard
-            available_jobs = Job.objects.filter(status='open').exclude(
+            all_available_jobs = Job.objects.filter(status='open').exclude(
                 applications__freelancer=user_profile
-            )
+            ).order_by('-created_at') # Order by creation date, newest first
+
+            # --- PAGINATION LOGIC FOR AVAILABLE JOBS ---
+            # Get the current page number from the request's GET parameters
+            page = request.GET.get('page', 1)
+            # Create a Paginator object with 10 jobs per page
+            paginator = Paginator(all_available_jobs, 10) # Show 10 jobs per page
+
+            try:
+                available_jobs_page = paginator.page(page)
+            except PageNotAnInteger:
+                # If page is not an integer, deliver first page.
+                available_jobs_page = paginator.page(1)
+            except EmptyPage:
+                # If page is out of range (e.g. 9999), deliver last page of results.
+                available_jobs_page = paginator.page(paginator.num_pages)
+            # --- END PAGINATION LOGIC ---
+
             my_applications = Application.objects.filter(freelancer=user_profile)
             my_job_requests = JobRequest.objects.filter(freelancer=user_profile)
-            
+
             context = {
                 'user_profile': user_profile,
-                'available_jobs': available_jobs,
+                'available_jobs': available_jobs_page, # Pass the paginated object
                 'my_applications': my_applications,
                 'my_job_requests': my_job_requests,
             }
             return render(request, 'freelancer_platform/freelancer_dashboard.html', context)
-        
+
         else:
-            # Recruiter dashboard
+            # Recruiter dashboard (no changes needed here for this request)
             posted_jobs = Job.objects.filter(recruiter=user_profile)
             active_jobs = posted_jobs.filter(status='open')
             total_applications = Application.objects.filter(job__recruiter=user_profile)
             job_requests = JobRequest.objects.filter(job__recruiter=user_profile)
-            
+
             context = {
                 'user_profile': user_profile,
                 'posted_jobs': posted_jobs,
@@ -258,7 +276,7 @@ def dashboard(request):
                 'job_requests': job_requests,
             }
             return render(request, 'freelancer_platform/recruiter_dashboard.html', context)
-    
+
     except UserProfile.DoesNotExist:
         messages.error(request, 'User profile not found.')
         return redirect('home')
@@ -275,16 +293,26 @@ def skill_recommendations_api(request):
         user_skills = data.get('user_skills', [])
         api_key = data.get('api_key')
         
-        # Get user profile for personalized recommendations
+        # Get user profile for personalization
         user_profile = UserProfile.objects.get(user=request.user)
-        
-        # Mock API response - in production, this would call external APIs
-        recommendations = get_skill_recommendations_from_api(skill_type, user_skills, api_key, user_profile)
-        
-        return JsonResponse({
-            'success': True,
-            'recommendations': recommendations
-        })
+
+        # First: Query local resources prioritized by relevance tags and (optional) location
+        tags = [s.lower() for s in user_skills] if user_skills else []
+        local_qs = LocalResource.objects.filter(is_active=True)
+        if tags:
+            local_qs = local_qs.filter(relevance_tags__overlap=tags)
+        # Optional: filter by location if profile has address
+        if user_profile.address:
+            loc = user_profile.address.lower()
+            local_qs = local_qs.filter(models.Q(location__iexact=user_profile.address) | models.Q(location__icontains=loc))
+        local_resources = list(local_qs.values('title','description','resource_type','credibility','url','location')[:20])
+
+        # Fallback: AI/generic recommendations if no local data
+        generic = []
+        if not local_resources:
+            generic = get_skill_recommendations_from_api(skill_type, user_skills, api_key, user_profile)
+
+        return JsonResponse({'success': True, 'local': local_resources, 'generic': generic})
     except Exception as e:
         return JsonResponse({
             'success': False,

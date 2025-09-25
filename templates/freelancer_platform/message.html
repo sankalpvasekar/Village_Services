@@ -1,25 +1,94 @@
 {% extends 'freelancer_platform/base.html' %}
+{% load static %}
+{% load phone_filters %}
 
 {% block title %}Messages{% endblock %}
 
 {% block content %}
-<h1 class="text-2xl font-bold mb-6">Messages</h1>
-
-<div class="space-y-4">
-    {% for profile in user_profiles %}
-        <div class="p-4 bg-white rounded shadow flex items-center justify-between">
-            <div>
-                <p class="font-medium text-lg">{{ profile.user.username }}</p>
-                <p class="text-sm text-gray-500">Phone: {{ profile.phone_number }}</p>
-            </div>
-            <a href="https://wa.me/{{ profile.phone_number }}" target="_blank"
-               class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded flex items-center space-x-2">
-               <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                   <path d="M..." /> <!-- Use WhatsApp icon SVG path -->
-               </svg>
-               <span>Chat</span>
-            </a>
+<style>
+input[name="q"] {
+    color: #000 !important;
+    -webkit-text-fill-color: #000; /* Ensure black in WebKit browsers */
+}
+input[name="q"]::placeholder {
+    color: #000 !important;
+    opacity: 1; /* Override default lighter placeholder */
+}
+</style>
+<div class="container mx-auto px-4 py-8">
+    <div class="max-w-4xl mx-auto bg-gray-800 rounded-lg shadow-xl p-6">
+        <div class="flex items-center gap-4 mb-6">
+            <i class="fas fa-comments text-blue-400 text-3xl"></i>
+            <h1 class="text-3xl font-bold text-white">Messages</h1>
         </div>
-    {% endfor %}
+
+        {# Search Bar Section #}
+        <div class="mb-6">
+            <form method="get" action=".">
+                <div class="relative">
+                    <input type="text" name="q" placeholder="Search users..."
+                           value="{{ request.GET.q }}"
+                           class="block w-full bg-white text-black border-black placeholder-black focus:border-blue-500 focus:ring-blue-500 rounded-md py-2 px-3 text-sm"
+                           aria-label="Search users">
+                    <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                        <i class="fas fa-search text-gray-400"></i>
+                    </div>
+                </div>
+            </form>
+        </div>
+        
+        <div class="space-y-4">
+            {% for profile in user_profiles %}
+                <div class="p-4 bg-gray-700 rounded-lg shadow-md flex items-center justify-between transition duration-200 ease-in-out hover:bg-gray-600">
+                    <div class="flex items-center space-x-4">
+                        <div class="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center text-white font-semibold">
+                            {% if profile.user.first_name %}{{ profile.user.first_name|first|upper }}{% else %}U{% endif %}
+                        </div>
+                        <div>
+                            <p class="font-medium text-lg text-gray-900">{{ profile.user.username }}</p>
+                            <p class="text-sm text-gray-900">Phone: {{ profile.phone }}</p>
+                        </div>
+                    </div>
+                    <a href="https://wa.me/{{ profile.phone|whatsapp_number }}" target="_blank"
+                       class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition duration-200 ease-in-out">
+                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M12.031 0C5.381 0 0 5.387 0 12.042c0 2.261.642 4.412 1.854 6.273L0 24l6.398-1.884c1.785.992 3.791 1.517 5.633 1.517 6.649 0 12.031-5.387 12.031-12.042S18.68 0 12.031 0zm.012 2.65c5.105 0 9.245 4.148 9.245 9.259 0 5.111-4.14 9.259-9.245 9.259-1.742 0-3.376-.486-4.789-1.332l-3.696 1.088 1.108-3.567c-.961-1.464-1.467-3.151-1.467-4.887 0-5.111 4.14-9.259 9.245-9.259zm-4.48 5.485c-.247-.077-.48-.116-.702-.116-.168 0-.348.048-.528.144-.18.096-.303.24-.367.432-.064.192-.12.44-.072.719.048.279.173.575.36.887.187.311.408.64.664.985.256.345.508.665.75.96.242.295.452.544.629.74.177.192.365.37.556.533.192.163.38.283.565.36.185.077.38.087.585.087.205 0 .4-.029.585-.087.185-.058.38-.158.585-.3.205-.144.38-.344.528-.6.148-.256.242-.519.289-.783.048-.264.048-.553 0-.865-.048-.312-.19-.575-.427-.791-.237-.216-.499-.365-.78-.442-.28-.077-.577-.077-.887 0-.31.077-.55.23-.718.46l-.24.326c-.048.064-.1.13-.156.173-.056.043-.105.053-.147.029-.043-.024-.077-.086-.105-.18-.029-.096-.048-.24-.048-.432 0-.288.163-.567.36-.831z"/>
+                        </svg>
+                        <span>WhatsApp</span>
+                    </a>
+                </div>
+            {% empty %}
+                <p class="text-gray-900 text-center italic">No messages or users to display.</p>
+            {% endfor %}
+        </div>
+    </div>
 </div>
-{% endblock %}
+{% endblock %}
+        
+        <div class="space-y-4">
+            {% for profile in user_profiles %}
+                <div class="p-4 bg-gray-700 rounded-lg shadow-md flex items-center justify-between transition duration-200 ease-in-out hover:bg-gray-600">
+                    <div class="flex items-center space-x-4">
+                        <div class="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center text-white font-semibold">
+                            {% if profile.user.first_name %}{{ profile.user.first_name|first|upper }}{% else %}U{% endif %}
+                        </div>
+                        <div>
+                            <p class="font-medium text-lg text-gray-900">{{ profile.user.username }}</p>
+                            <p class="text-sm text-gray-900">Phone: {{ profile.phone }}</p>
+                        </div>
+                    </div>
+                    <a href="https://wa.me/{{ profile.phone }}" target="_blank"
+                       class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition duration-200 ease-in-out">
+                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M12.031 0C5.381 0 0 5.387 0 12.042c0 2.261.642 4.412 1.854 6.273L0 24l6.398-1.884c1.785.992 3.791 1.517 5.633 1.517 6.649 0 12.031-5.387 12.031-12.042S18.68 0 12.031 0zm.012 2.65c5.105 0 9.245 4.148 9.245 9.259 0 5.111-4.14 9.259-9.245 9.259-1.742 0-3.376-.486-4.789-1.332l-3.696 1.088 1.108-3.567c-.961-1.464-1.467-3.151-1.467-4.887 0-5.111 4.14-9.259 9.245-9.259zm-4.48 5.485c-.247-.077-.48-.116-.702-.116-.168 0-.348.048-.528.144-.18.096-.303.24-.367.432-.064.192-.12.44-.072.719.048.279.173.575.36.887.187.311.408.64.664.985.256.345.508.665.75.96.242.295.452.544.629.74.177.192.365.37.556.533.192.163.38.283.565.36.185.077.38.087.585.087.205 0 .4-.029.585-.087.185-.058.38-.158.585-.3.205-.144.38-.344.528-.6.148-.256.242-.519.289-.783.048-.264.048-.553 0-.865-.048-.312-.19-.575-.427-.791-.237-.216-.499-.365-.78-.442-.28-.077-.577-.077-.887 0-.31.077-.55.23-.718.46l-.24.326c-.048.064-.1.13-.156.173-.056.043-.105.053-.147.029-.043-.024-.077-.086-.105-.18-.029-.096-.048-.24-.048-.432 0-.288.163-.567.36-.831z"/>
+                        </svg>
+                        <span>WhatsApp</span>
+                    </a>
+                </div>
+            {% empty %}
+                <p class="text-gray-900 text-center italic">No messages or users to display.</p>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}

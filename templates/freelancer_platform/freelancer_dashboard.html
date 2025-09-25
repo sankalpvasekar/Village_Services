@@ -3,360 +3,898 @@
 {% block title %}Freelancer Dashboard - Local Free-Lancer{% endblock %}
 
 {% block content %}
-<div class="space-y-8 bg-slate-900 text-slate-300 p-4 sm:p-6 lg:p-8">
+<div class="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-indigo-900 text-gray-100 py-8 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-7xl mx-auto space-y-8">
 
-    <div class="bg-slate-800 rounded-lg shadow-lg p-6 border border-slate-700">
-        <div class="flex items-center justify-between">
-            <div>
-                <h1 class="text-2xl font-bold text-white">Welcome back, {{ user_profile.user.first_name }}!</h1>
-                <p class="text-slate-400 mt-1">Find your next opportunity and manage your applications</p>
-            </div>
-            <div class="text-right">
-                <p class="text-sm text-slate-500">Member since</p>
-                <p class="text-sm font-medium text-white">{{ user_profile.created_at|date:"M Y" }}</p>
+        <div class="bg-gray-800/80 backdrop-blur-md rounded-2xl shadow-2xl p-6 border border-blue-700">
+            <div class="flex items-center justify-between flex-wrap gap-4">
+                <div>
+                    <h1 class="text-3xl font-bold text-blue-300">Welcome back, {{ user_profile.user.first_name }}!</h1>
+                    <p class="text-blue-200 mt-1">Find your next opportunity and manage your applications</p>
+                </div>
+                <div class="text-right">
+                    <p class="text-sm text-blue-400">Member since</p>
+                    <p class="text-lg font-medium text-blue-300">{{ user_profile.created_at|date:"M Y" }}</p>
+                </div>
             </div>
         </div>
-    </div>
-<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <a href="#available-jobs" class="block bg-slate-800 rounded-lg p-6 shadow-lg border border-slate-700 hover:border-cyan-500 transition-all transform hover:-translate-y-1">
-            <div class="flex items-center">
-                <div class="flex-shrink-0">
-                    <div class="w-10 h-10 bg-cyan-500/10 rounded-full flex items-center justify-center">
-                        <svg class="w-5 h-5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m8 0V6a2 2 0 012 2v6a2 2 0 01-2 2H8a2 2 0 01-2-2V8a2 2 0 012-2V6"></path>
-                        </svg>
-                    </div>
-                </div>
-                <div class="ml-4">
-                    <p class="text-sm font-medium text-slate-400">Available Jobs</p>
-                    <p class="text-2xl font-bold text-white">{{ available_jobs.count }}</p>
-                </div>
-            </div>
-        </a>
 
-        <a href="{% url 'freelancer_profile' %}" class="block bg-slate-800 rounded-lg p-6 shadow-lg border border-slate-700 hover:border-cyan-500 transition-all transform hover:-translate-y-1">
-            <div class="flex items-center">
-                <div class="flex-shrink-0">
-                    <div class="w-10 h-10 bg-purple-500/10 rounded-full flex items-center justify-center">
-                        <svg class="w-5 h-5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                        </svg>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <a href="#available-jobs" class="block bg-gray-800/80 backdrop-blur-md rounded-2xl shadow-xl p-6 border border-blue-700 transition transform hover:-translate-y-1 hover:shadow-2xl hover:border-blue-500">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <div class="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center shadow-md">
+                            <svg class="w-5 h-5 text-blue-100" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m8 0V6a2 2 0 012 2v6a2 2 0 01-2 2H8a2 2 0 01-2-2V8a2 2 0 012-2V6"></path>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-blue-300">Available Jobs</p>
+                        <p class="text-3xl font-bold text-blue-100">{{ available_jobs.paginator.count }}</p> {# Use paginator.count for total available jobs #}
                     </div>
                 </div>
-                <div class="ml-4">
-                     <p class="text-sm font-medium text-slate-400">Profile Completion</p>
-                    <p class="text-2xl font-bold text-white">85%</p>
-                </div>
-            </div>
-        </a>
+            </a>
 
-        <a href="{% url 'messages_list' %}" class="block bg-slate-800 rounded-lg p-6 shadow-lg border border-slate-700 hover:border-cyan-500 transition-all transform hover:-translate-y-1">
-            <div class="flex items-center">
-                <div class="flex-shrink-0">
-                    <div class="w-10 h-10 bg-green-500/10 rounded-full flex items-center justify-center">
-                        <svg class="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
-                        </svg>
+            <a href="{% url 'freelancer_profile' %}" class="block bg-gray-800/80 backdrop-blur-md rounded-2xl shadow-xl p-6 border border-purple-700 transition transform hover:-translate-y-1 hover:shadow-2xl hover:border-purple-500">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <div class="w-10 h-10 bg-purple-600 rounded-full flex items-center justify-center shadow-md">
+                            <svg class="w-5 h-5 text-purple-100" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="ml-4">
+                           <p class="text-sm font-medium text-purple-300">Profile Completion</p>
+                         <p class="text-3xl font-bold text-purple-100">85%</p> {# This is hardcoded for now #}
                     </div>
                 </div>
-                <div class="ml-4">
-                    <p class="text-sm font-medium text-slate-400">Messages</p>
-                    <p class="text-2xl font-bold text-white">3 New</p>
+            </a>
+
+            <a href="{% url 'messages_list' %}" class="block bg-gray-800/80 backdrop-blur-md rounded-2xl shadow-xl p-6 border border-green-700 transition transform hover:-translate-y-1 hover:shadow-2xl hover:border-green-500">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <div class="w-10 h-10 bg-green-600 rounded-full flex items-center justify-center shadow-md">
+                            <svg class="w-5 h-5 text-green-100" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-green-300">Messages</p>
+                        <p class="text-3xl font-bold text-green-100">3 New</p> {# This is hardcoded for now #}
+                    </div>
                 </div>
-            </div>
-        </a>
-    </div>
-    <div class="bg-slate-800 rounded-lg shadow-lg border border-slate-700">
-        <div class="px-6 py-4 border-b border-slate-700">
-            <h2 class="text-lg font-semibold text-white">Profile & Skills</h2>
-            <p class="text-sm text-slate-400">Manage your profile and get skill-based recommendations</p>
+            </a>
         </div>
-        <div class="p-6">
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                <div class="border border-slate-700 rounded-lg p-4 hover:shadow-xl hover:shadow-cyan-500/10 transition-shadow duration-300 bg-slate-800/50">
-                    <h3 class="font-medium text-white mb-2">Profile Management</h3>
-                    <p class="text-sm text-slate-400 mb-3">Update your skills, work examples, and profile information</p>
-                    <a href="{% url 'freelancer_profile' %}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-slate-900 bg-cyan-400 hover:bg-cyan-300 transition-colors">
+
+        <div class="bg-gray-800/80 backdrop-blur-md rounded-2xl shadow-2xl p-6 border border-blue-700">
+            <div class="px-0 py-0 border-b-2 border-blue-700 pb-3 mb-4">
+                <h2 class="text-2xl font-semibold text-blue-300">Profile & Skills</h2>
+                <p class="text-blue-200 mt-1">Manage your profile and get skill-based recommendations</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div class="border-2 border-blue-700 rounded-xl p-4 transition-all duration-300 hover:shadow-2xl hover:border-blue-400 group bg-blue-900/40">
+                    <h3 class="text-lg font-semibold text-blue-200 mb-2">Profile Management</h3>
+                    <p class="text-sm text-blue-300 mb-4">Update your skills, work examples, and profile information</p>
+                    <a href="{% url 'freelancer_profile' %}" class="inline-flex items-center px-5 py-2.5 border border-transparent text-sm font-medium rounded-lg text-white bg-blue-600 hover:bg-blue-700 transition-colors shadow-md transform hover:scale-105">
                         Manage Profile
                     </a>
                 </div>
-                <div class="border border-slate-700 rounded-lg p-4 hover:shadow-xl hover:shadow-cyan-500/10 transition-shadow duration-300 bg-slate-800/50">
-                    <h3 class="font-medium text-white mb-2">Complaints Center</h3>
-                    <p class="text-sm text-slate-400 mb-3">Report recruiter issues or track your complaints</p>
+                <div class="border-2 border-red-700 rounded-xl p-4 transition-all duration-300 hover:shadow-2xl hover:border-red-400 group bg-red-900/40">
+                    <h3 class="text-lg font-semibold text-red-200 mb-2">Complaints Center</h3>
+                    <p class="text-sm text-red-300 mb-4">Report recruiter issues or track your complaints</p>
                     <div class="flex flex-wrap gap-2">
-                        <a href="{% url 'my_complaints' %}" class="inline-flex items-center px-3 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-yellow-600 hover:bg-yellow-700 transition-colors">
+                        <a href="{% url 'my_complaints' %}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg text-white bg-yellow-600 hover:bg-yellow-700 transition-colors shadow-md transform hover:scale-105">
                             View My Complaints
                         </a>
-                        <a href="{% url 'file_complaint_general' %}" class="inline-flex items-center px-3 py-2 border border-red-600 text-sm font-medium rounded-md text-red-300 bg-red-500/10 hover:bg-red-500/20 transition-colors">
+                        <a href="{% url 'file_complaint_general' %}" class="inline-flex items-center px-4 py-2 border border-red-600 text-sm font-medium rounded-lg text-red-200 bg-red-800 hover:bg-red-700 transition-colors shadow-md transform hover:scale-105">
                             File a Complaint
                         </a>
                     </div>
                 </div>
-                <div class="border border-slate-700 rounded-lg p-4 hover:shadow-xl hover:shadow-cyan-500/10 transition-shadow duration-300 bg-slate-800/50">
-                    <h3 class="font-medium text-white mb-2">AI Job Recommendations</h3>
-                    <p class="text-sm text-slate-400 mb-3">Get personalized job recommendations based on your skills</p>
-                    <a href="{% url 'skill_based_jobs' %}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700 transition-colors">
+                <div class="border-2 border-purple-700 rounded-xl p-4 transition-all duration-300 hover:shadow-2xl hover:border-purple-400 group bg-purple-900/40">
+                    <h3 class="text-lg font-semibold text-purple-200 mb-2">AI Job Recommendations</h3>
+                    <p class="text-sm text-purple-300 mb-4">Get personalized job recommendations based on your skills</p>
+                    <a href="{% url 'skill_based_jobs' %}" class="inline-flex items-center px-5 py-2.5 border border-transparent text-sm font-medium rounded-lg text-white bg-purple-600 hover:bg-purple-700 transition-colors shadow-md transform hover:scale-105">
                         View Recommendations
                     </a>
                 </div>
-                <div class="border border-slate-700 rounded-lg p-4 hover:shadow-xl hover:shadow-cyan-500/10 transition-shadow duration-300 bg-slate-800/50">
-                    <h3 class="font-medium text-white mb-2">Payment History</h3>
-                    <p class="text-sm text-slate-400 mb-3">View your payments and escrow activity</p>
-                    <a href="{% url 'payment_history' %}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-emerald-600 hover:bg-emerald-700 transition-colors">
+                <div class="border-2 border-green-700 rounded-xl p-4 transition-all duration-300 hover:shadow-2xl hover:border-green-400 group bg-green-900/40">
+                    <h3 class="text-lg font-semibold text-green-200 mb-2">Payment History</h3>
+                    <p class="text-sm text-green-300 mb-4">View your payments and escrow activity</p>
+                    <a href="{% url 'payment_history' %}" class="inline-flex items-center px-5 py-2.5 border border-transparent text-sm font-medium rounded-lg text-white bg-green-600 hover:bg-green-700 transition-colors shadow-md transform hover:scale-105">
                         Open Payment History
                     </a>
                 </div>
-                <div class="border border-slate-700 rounded-lg p-4 hover:shadow-xl hover:shadow-cyan-500/10 transition-shadow duration-300 bg-slate-800/50">
-                    <h3 class="font-medium text-white mb-2">My Applications</h3>
-                    <p class="text-sm text-slate-400 mb-3">Review and track the jobs you applied to</p>
-                    <a href="{% url 'dashboard' %}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-slate-900 bg-cyan-400 hover:bg-cyan-300 transition-colors">
+                <div class="border-2 border-blue-700 rounded-xl p-4 transition-all duration-300 hover:shadow-2xl hover:border-blue-400 group bg-blue-900/40">
+                    <h3 class="text-lg font-semibold text-blue-200 mb-2">My Applications</h3>
+                    <p class="text-sm text-blue-300 mb-4">Review and track the jobs you applied to</p>
+                    <a href="{% url 'dashboard' %}" class="inline-flex items-center px-5 py-2.5 border border-transparent text-sm font-medium rounded-lg text-white bg-blue-600 hover:bg-blue-700 transition-colors shadow-md transform hover:scale-105">
                         View Applications
                     </a>
                 </div>
-                <div class="border border-slate-700 rounded-lg p-4 hover:shadow-xl hover:shadow-cyan-500/10 transition-shadow duration-300 bg-slate-800/50">
-                    <h3 class="font-medium text-white mb-2">Workspace</h3>
-                    <p class="text-sm text-slate-400 mb-3">Access your approved jobs and start work</p>
-                    <a href="{% url 'workspace_detail' %}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 transition-colors">
+                <div class="border-2 border-indigo-700 rounded-xl p-4 transition-all duration-300 hover:shadow-2xl hover:border-indigo-400 group bg-indigo-900/40">
+                    <h3 class="text-lg font-semibold text-indigo-200 mb-2">Workspace</h3>
+                    <p class="text-sm text-indigo-300 mb-4">Access your approved jobs and start work</p>
+                    <a href="{% url 'workspace_detail' %}" class="inline-flex items-center px-5 py-2.5 border border-transparent text-sm font-medium rounded-lg text-white bg-indigo-600 hover:bg-indigo-700 transition-colors shadow-md transform hover:scale-105">
                         Go to Workspace
                     </a>
                 </div>
             </div>
         </div>
-    </div>
-    <div id="available-jobs" class="bg-slate-800 rounded-lg shadow-lg border border-slate-700">
-        <div class="px-6 py-4 border-b border-slate-700">
-            <h2 class="text-lg font-semibold text-white">Available Jobs</h2>
-            <p class="text-sm text-slate-400">Find opportunities that match your skills</p>
-        </div>
 
-        {% if available_jobs %}
-            <div class="divide-y divide-slate-700">
-                {% for job in available_jobs %}
-                    <div class="px-6 py-4 hover:bg-slate-700/50 transition duration-300">
-                        <div class="flex items-center justify-between">
-                            <div class="flex-1">
-                                <h3 class="text-lg font-medium text-white">
-                                    <a href="{% url 'job_detail' job.id %}" class="hover:text-cyan-400">
-                                        {{ job.title }}
+        <div id="available-jobs" class="bg-gray-800/80 backdrop-blur-md rounded-2xl shadow-2xl border border-blue-700">
+            <div class="px-6 py-5 border-b-2 border-blue-700">
+                <h2 class="text-2xl font-semibold text-blue-300">Available Jobs</h2>
+                <p class="text-blue-200 mt-1">Find opportunities that match your skills</p>
+            </div>
+
+            {% if available_jobs %}
+                <div class="divide-y divide-blue-800">
+                    {% for job in available_jobs %}
+                        <div class="px-6 py-5 hover:bg-blue-900/40 transition-colors">
+                            <div class="flex items-start justify-between flex-wrap gap-4">
+                                <div class="flex-1 min-w-0">
+                                    <h3 class="text-xl font-medium text-blue-100 mb-1">
+                                        <a href="{% url 'job_detail' job.id %}" class="hover:text-blue-400 transition-colors">
+                                            {{ job.title }}
+                                        </a>
+                                    </h3>
+                                    <p class="text-sm text-blue-300 mt-1 line-clamp-2">{{ job.description|truncatewords:30 }}</p>
+                                    <div class="flex flex-wrap items-center mt-3 gap-x-4 gap-y-2 text-sm">
+                                        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-700 text-blue-100">
+                                            {{ job.get_category_display }}
+                                        </span>
+                                        {% if job.company_name %}
+                                        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-gray-700 text-gray-100">
+                                            <svg class="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h3V7a2 2 0 012-2h6a2 2 0 012 2v12h1a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2z"/></svg>
+                                            {{ job.company_name }}
+                                        </span>
+                                        {% endif %}
+                                        {% if job.required_skills %}
+                                        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-purple-700 text-purple-100">
+                                            <svg class="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6l3 7-7 3 3-7 7-3-3 7"/></svg>
+                                            Skills: {{ job.required_skills|truncatechars:40 }}
+                                        </span>
+                                        {% endif %}
+                                        {% if job.salary_min or job.salary_max %}
+                                        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-700 text-green-100">
+                                            <svg class="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"/></svg>
+                                            Salary: ₹{{ job.salary_min|default:0 }}{% if job.salary_max %} - ₹{{ job.salary_max }}{% endif %}
+                                        </span>
+                                        {% endif %}
+                                        {% if job.duration_months %}
+                                        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-orange-700 text-orange-100">
+                                            <svg class="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3M3 11h18M5 19h14a2 2 0 002-2v-6H3v6a2 2 0 002 2z"/></svg>
+                                            Duration: {{ job.duration_months }} {{ job.get_duration_unit_display }}
+                                        </span>
+                                        {% endif %}
+                                        <span class="text-sm text-blue-400">Posted {{ job.created_at|timesince }} ago</span>
+                                    </div>
+                                </div>
+                                <div class="ml-4 mt-4 sm:mt-0">
+                                    <a href="{% url 'job_detail' job.id %}"
+                                       class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-600 transition-colors shadow-md transform hover:scale-105">
+                                        View Details
                                     </a>
-                                </h3>
-                                <p class="text-sm text-slate-400 mt-1">{{ job.description|truncatewords:30 }}</p>
-                                <div class="flex flex-wrap items-center mt-3 gap-2 text-sm">
-                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-cyan-500/10 text-cyan-300">
-                                        {{ job.get_category_display }}
-                                    </span>
-                                    {% if job.company_name %}
-                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-600 text-slate-300">
-                                        <svg class="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h3V7a2 2 0 012-2h6a2 2 0 012 2v12h1a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2z"/></svg>
-                                        {{ job.company_name }}
-                                    </span>
-                                    {% endif %}
-                                    {% if job.required_skills %}
-                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-500/10 text-purple-300">
-                                        <svg class="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6l3 7-7 3 3-7 7-3-3 7"/></svg>
-                                        Skills: {{ job.required_skills|truncatechars:40 }}
-                                    </span>
-                                    {% endif %}
-                                    {% if job.salary_min or job.salary_max %}
-                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-500/10 text-green-300">
-                                        <svg class="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"/></svg>
-                                        Salary: ₹{{ job.salary_min|default:0 }}{% if job.salary_max %} - ₹{{ job.salary_max }}{% endif %}
-                                    </span>
-                                    {% endif %}
-                                    {% if job.duration_months %}
-                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-orange-500/10 text-orange-300">
-                                        <svg class="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3M3 11h18M5 19h14a2 2 0 002-2v-6H3v6a2 2 0 002 2z"/></svg>
-                                        Duration: {{ job.duration_months }} {{ job.get_duration_unit_display }}
-                                    </span>
-                                    {% endif %}
-                                    <span class="text-slate-500 text-xs">Posted {{ job.created_at|timesince }} ago</span>
                                 </div>
                             </div>
-                            <div class="ml-4">
-                                <a href="{% url 'job_detail' job.id %}"
-                                   class="inline-flex items-center px-4 py-2 border border-slate-600 text-sm font-medium rounded-md text-white bg-slate-700 hover:bg-cyan-500 hover:text-slate-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-800 focus:ring-cyan-500 transition-colors">
-                                    View Details
-                                </a>
-                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+
+                {# Pagination Controls #}
+                <div class="px-6 py-4 flex items-center justify-between border-t border-blue-700">
+                    <div class="flex-1 flex justify-between sm:hidden">
+                        {% if available_jobs.has_previous %}
+                            <a href="?page={{ available_jobs.previous_page_number }}"
+                               class="relative inline-flex items-center px-4 py-2 border border-blue-600 text-sm font-medium rounded-md text-blue-200 bg-blue-800 hover:bg-blue-700">
+                                Previous
+                            </a>
+                        {% else %}
+                            <span class="relative inline-flex items-center px-4 py-2 border border-gray-700 text-sm font-medium rounded-md text-gray-500 bg-gray-800 cursor-not-allowed">
+                                Previous
+                            </span>
+                        {% endif %}
+                        {% if available_jobs.has_next %}
+                            <a href="?page={{ available_jobs.next_page_number }}"
+                               class="ml-3 relative inline-flex items-center px-4 py-2 border border-blue-600 text-sm font-medium rounded-md text-blue-200 bg-blue-800 hover:bg-blue-700">
+                                Next
+                            </a>
+                        {% else %}
+                            <span class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-700 text-sm font-medium rounded-md text-gray-500 bg-gray-800 cursor-not-allowed">
+                                Next
+                            </span>
+                        {% endif %}
+                    </div>
+                    <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+                        <div>
+                            <p class="text-sm text-blue-300">
+                                Showing
+                                <span class="font-medium">{{ available_jobs.start_index }}</span>
+                                to
+                                <span class="font-medium">{{ available_jobs.end_index }}</span>
+                                of
+                                <span class="font-medium">{{ available_jobs.paginator.count }}</span>
+                                results
+                            </p>
+                        </div>
+                        <div>
+                            <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                                {% if available_jobs.has_previous %}
+                                    <a href="?page={{ available_jobs.previous_page_number }}"
+                                       class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-blue-600 bg-blue-800 text-sm font-medium text-blue-200 hover:bg-blue-700">
+                                        <span class="sr-only">Previous</span>
+                                        <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                            <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
+                                        </svg>
+                                    </a>
+                                {% else %}
+                                    <span class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-700 bg-gray-800 text-sm font-medium text-gray-500 cursor-not-allowed">
+                                        <span class="sr-only">Previous</span>
+                                        <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                            <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
+                                        </svg>
+                                    </span>
+                                {% endif %}
+
+                                {% for i in available_jobs.paginator.page_range %}
+                                    {% if available_jobs.number == i %}
+                                        <span aria-current="page"
+                                              class="relative inline-flex items-center px-4 py-2 border border-blue-500 bg-blue-600 text-sm font-medium text-white">
+                                            {{ i }}
+                                        </span>
+                                    {% else %}
+                                        <a href="?page={{ i }}"
+                                           class="relative inline-flex items-center px-4 py-2 border border-blue-600 bg-blue-800 text-sm font-medium text-blue-200 hover:bg-blue-700">
+                                            {{ i }}
+                                        </a>
+                                    {% endif %}
+                                {% endfor %}
+
+                                {% if available_jobs.has_next %}
+                                    <a href="?page={{ available_jobs.next_page_number }}"
+                                       class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-blue-600 bg-blue-800 text-sm font-medium text-blue-200 hover:bg-blue-700">
+                                        <span class="sr-only">Next</span>
+                                        <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                            <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+                                        </svg>
+                                    </a>
+                                {% else %}
+                                    <span class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-700 bg-gray-800 text-sm font-medium text-gray-500 cursor-not-allowed">
+                                        <span class="sr-only">Next</span>
+                                        <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                            <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+                                        </svg>
+                                    </span>
+                                {% endif %}
+                            </nav>
                         </div>
                     </div>
-                {% endfor %}
-            </div>
-        {% else %}
-            <div class="px-6 py-8 text-center">
-                <svg class="mx-auto h-12 w-12 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m8 0V6a2 2 0 012 2v6a2 2 0 01-2 2H8a2 2 0 01-2-2V8a2 2 0 012-2V6"></path>
-                </svg>
-                <h3 class="mt-2 text-sm font-medium text-white">No jobs available</h3>
-                <p class="mt-1 text-sm text-slate-400">Check back later for new opportunities.</p>
-            </div>
-        {% endif %}
-    </div>
-    <div class="bg-slate-800 rounded-lg shadow-lg border border-slate-700">
-        <div class="px-6 py-4 border-b border-slate-700">
-            <h2 class="text-lg font-semibold text-white">Community Resources & Skill Development</h2>
-            <p class="text-sm text-slate-400">Access resources to help you succeed and overcome challenges</p>
+                </div>
+            {% else %}
+                <div class="px-6 py-12 text-center border-t-2 border-blue-700/60 pt-8">
+                    <svg class="mx-auto h-16 w-16 text-blue-500 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m8 0V6a2 2 0 012 2v6a2 2 0 01-2 2H8a2 2 0 01-2-2V8a2 2 0 012-2V6"></path>
+                    </svg>
+                    <h3 class="mt-4 text-xl font-medium text-blue-200">No jobs available</h3>
+                    <p class="mt-2 text-blue-300">Check back later for new opportunities.</p>
+                </div>
+            {% endif %}
         </div>
-        <div class="p-6">
+
+        <div class="container mx-auto px-4 py-8">
+
+
+
+      <div class="container mx-auto px-5 py-8">
+        <div class="bg-gray-800/80 backdrop-blur-md rounded-2xl shadow-2xl p-6 border border-blue-700 mb-8">
+            <div class="px-0 py-0 border-b-2 border-blue-00 pb-3 mb-4">
+                <h2 class="text-2xl font-semibold text-blue-300">Community Resources & Skill Development</h2>
+                <p class="text-blue-200 mt-1">Access resources to help you succeed and overcome challenges</p>
+            </div>
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <div class="border border-slate-700 rounded-lg p-4 hover:shadow-xl hover:shadow-cyan-500/10 transition-shadow">
+                <!-- Skill Development Section -->
+                <div class="border-2 border-blue-800 rounded-xl p-4 transition-all duration-300 hover:shadow-2xl hover:border-blue-400 group bg-blue-900/40">
                     <div class="flex items-center mb-3">
-                        <div class="w-10 h-10 bg-cyan-500/10 rounded-full flex items-center justify-center mr-3">
-                           <svg class="w-5 h-5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
+                        <div class="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center mr-3 shadow-md">
+                           <svg class="w-5 h-5 text-blue-100" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
                         </div>
-                        <h3 class="font-medium text-white">Skill Development</h3>
+                        <h3 class="text-lg font-semibold text-blue-200">Skill Development</h3>
                     </div>
-                    <p class="text-sm text-slate-400 mb-3">Free online courses and training programs to improve your skills</p>
+                    <p class="text-sm text-blue-300 mb-4">Free online courses and training programs to improve your skills</p>
                     <div class="space-y-2">
-                        <button onclick="getSkillRecommendations('general')" class="w-full text-left text-sm text-cyan-400 hover:text-cyan-300 bg-slate-700 hover:bg-slate-600 px-3 py-2 rounded transition-colors">
-                            📚 Get Personalized Course Recommendations
-                        </button>
-                        <button onclick="getCertificationLinks('general')" class="w-full text-left text-sm text-cyan-400 hover:text-cyan-300 bg-slate-700 hover:bg-slate-600 px-3 py-2 rounded transition-colors">
-                            🏆 Find Certification Programs
+                        <form id="skill-form" class="space-y-2">
+                            <label for="skill-select" class="block text-sm font-medium text-blue-200">Select Your Skill:</label>
+                            <select id="skill-select" class="w-full text-left text-sm text-blue-900 bg-gray-200 px-4 py-2 rounded-lg transition-colors shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400">
+                                <option value="Dabba Service">Dabba Service (Cooking)</option>
+                                <option value="Painter">Painter</option>
+                                <option value="IT Freelancer">IT Freelancer</option>
+                                <option value="Web Developer">Web Developer</option>
+                                <option value="Electrician">Electrician</option>
+                            </select>
+                            <button type="button" id="yt-video-btn" class="w-full text-left text-sm text-blue-200 hover:text-white bg-blue-700 hover:bg-blue-600 px-4 py-2 rounded-lg transition-colors shadow-sm">
+                                ▶️ Get YouTube Video Recommendations
+                            </button>
+                             <button type="button" id="get-recommendations-btn" class="w-full text-left text-sm text-blue-200 hover:text-white bg-blue-700 hover:bg-blue-600 px-4 py-2 rounded-lg transition-colors shadow-sm">
+                                📚 Get Personalized Course Recommendations
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Financial Support Section -->
+                <div class="border-2 border-green-700 rounded-xl p-4 transition-all duration-300 hover:shadow-2xl hover:border-green-400 group bg-green-900/40">
+                    <div class="flex items-center mb-3">
+                        <div class="w-10 h-10 bg-green-600 rounded-full flex items-center justify-center mr-3 shadow-md">
+                           <svg class="w-5 h-5 text-green-100" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"></path></svg>
+                        </div>
+                        <h3 class="text-lg font-semibold text-green-200">Financial Support</h3>
+                    </div>
+                    <p class="text-sm text-green-300 mb-4">Resources for financial planning and emergency assistance</p>
+                    <div class="space-y-2">
+                        <button id="government-schemes-btn" class="w-full text-left text-sm text-green-200 hover:text-white bg-green-700 hover:bg-green-600 px-4 py-2 rounded-lg transition-colors shadow-sm">
+                            🏦 Government Schemes for Small Businesses
                         </button>
                     </div>
                 </div>
 
-                <div class="border border-slate-700 rounded-lg p-4 hover:shadow-xl hover:shadow-cyan-500/10 transition-shadow">
+                <!-- Community Support Section -->
+                <div class="border-2 border-purple-700 rounded-xl p-4 transition-all duration-300 hover:shadow-2xl hover:border-purple-400 group bg-purple-900/40">
                     <div class="flex items-center mb-3">
-                         <div class="w-10 h-10 bg-green-500/10 rounded-full flex items-center justify-center mr-3">
-                           <svg class="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"></path></svg>
+                        <div class="w-10 h-10 bg-purple-600 rounded-full flex items-center justify-center mr-3 shadow-md">
+                           <svg class="w-5 h-5 text-purple-100" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
                         </div>
-                        <h3 class="font-medium text-white">Financial Support</h3>
+                        <h3 class="text-lg font-semibold text-purple-200">Community Support</h3>
                     </div>
-                    <p class="text-sm text-slate-400 mb-3">Resources for financial planning and emergency assistance</p>
+                    <p class="text-sm text-purple-300 mb-4">Connect with local community groups and support networks</p>
                     <div class="space-y-2">
-                        <button onclick="getFinancialResources()" class="w-full text-left text-sm text-green-400 hover:text-green-300 bg-slate-700 hover:bg-slate-600 px-3 py-2 rounded transition-colors">
-                            💰 Financial Planning Tools
+                        <button id="community-groups-btn" class="w-full text-left text-sm text-purple-200 hover:text-white bg-purple-700 hover:bg-purple-600 px-4 py-2 rounded-lg transition-colors shadow-sm">
+                            👥 Local Community Groups
                         </button>
-                        <button onclick="getMicrofinancePrograms()" class="w-full text-left text-sm text-green-400 hover:text-green-300 bg-slate-700 hover:bg-slate-600 px-3 py-2 rounded transition-colors">
-                            🏦 Microfinance Programs
-                        </button>
-                    </div>
-                </div>
-
-                <div class="border border-slate-700 rounded-lg p-4 hover:shadow-xl hover:shadow-cyan-500/10 transition-shadow">
-                    <div class="flex items-center mb-3">
-                        <div class="w-10 h-10 bg-purple-500/10 rounded-full flex items-center justify-center mr-3">
-                           <svg class="w-5 h-5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
-                        </div>
-                        <h3 class="font-medium text-white">Community Support</h3>
-                    </div>
-                    <p class="text-sm text-slate-400 mb-3">Connect with local community groups and support networks</p>
-                    <div class="space-y-2">
-                        <button onclick="getCommunityGroups()" class="w-full text-left text-sm text-purple-400 hover:text-purple-300 bg-slate-700 hover:bg-slate-600 px-3 py-2 rounded transition-colors">
-                           👥 Local Community Groups
-                        </button>
-                        <button onclick="getMentorshipPrograms()" class="w-full text-left text-sm text-purple-400 hover:text-purple-300 bg-slate-700 hover:bg-slate-600 px-3 py-2 rounded transition-colors">
+                        <button id="mentorship-programs-btn" class="w-full text-left text-sm text-purple-200 hover:text-white bg-purple-700 hover:bg-purple-600 px-4 py-2 rounded-lg transition-colors shadow-sm">
                             🤝 Mentorship Programs
                         </button>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
-    <div id="skillRecommendationsModal" class="fixed inset-0 bg-black bg-opacity-75 overflow-y-auto h-full w-full hidden z-50">
-        <div class="relative top-20 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-1/2 shadow-lg rounded-md bg-slate-800 border-slate-700">
-            <div class="mt-3 text-slate-300">
-                <div class="flex items-center justify-between mb-4">
-                    <h3 class="text-lg font-semibold text-white" id="modalTitle">Skill Recommendations</h3>
-                    <button onclick="closeSkillModal()" class="text-slate-400 hover:text-white">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+
+        <!-- Help & Support Section -->
+        <div class="bg-gray-800/80 backdrop-blur-md rounded-2xl shadow-2xl p-6 border border-red-700">
+            <div class="px-0 py-0 border-b-2 border-red-700 pb-3 mb-4">
+                <h2 class="text-2xl font-semibold text-red-300">Help & Support</h2>
+                <p class="text-red-200 mt-1">Get answers to your questions and resolve issues</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="border-2 border-red-700 rounded-xl p-4 transition-all duration-300 hover:shadow-2xl hover:border-red-400 group bg-red-900/40">
+                    <h3 class="text-lg font-semibold text-red-200 mb-2">FAQs</h3>
+                    <p class="text-sm text-red-300 mb-4">Find answers to frequently asked questions about the platform.</p>
+                    <button id="faq-btn" class="w-full text-left text-sm text-red-200 hover:text-white bg-red-700 hover:bg-red-600 px-4 py-2 rounded-lg transition-colors shadow-sm">
+                        ❓ View FAQs
                     </button>
                 </div>
-                <div id="skillRecommendationsContent" class="space-y-4 max-h-[60vh] overflow-y-auto pr-2">
-                    </div>
+                <div class="border-2 border-red-700 rounded-xl p-4 transition-all duration-300 hover:shadow-2xl hover:border-red-400 group bg-red-900/40">
+                    <h3 class="text-lg font-semibold text-red-200 mb-2">Contact Support</h3>
+                    <p class="text-sm text-red-300 mb-4">Get in touch with our support team for personalized assistance.</p>
+                    <button id="contact-support-btn" class="w-full text-left text-sm text-red-200 hover:text-white bg-red-700 hover:bg-red-600 px-4 py-2 rounded-lg transition-colors shadow-sm">
+                        📞 Contact Support
+                    </button>
+                </div>
+                <div class="border-2 border-red-700 rounded-xl p-4 transition-all duration-300 hover:shadow-2xl hover:border-red-400 group bg-red-900/40">
+                    <h3 class="text-lg font-semibold text-red-200 mb-2">File a Complaint</h3>
+                    <p class="text-sm text-red-300 mb-4">Report an issue with a client or a project.</p>
+                    <button id="file-complaint-btn" class="w-full text-left text-sm text-red-200 hover:text-white bg-red-700 hover:bg-red-600 px-4 py-2 rounded-lg transition-colors shadow-sm">
+                        📝 File Complaint
+                    </button>
+                </div>
             </div>
         </div>
     </div>
+	
+	<div id="recommendationsModal" class="fixed inset-0 bg-black bg-opacity-75 overflow-y-auto h-full w-full hidden z-50">
+        <div class="relative top-20 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-1/2 shadow-lg rounded-md bg-gray-800 border-blue-700 text-gray-100">
+            <div class="mt-3">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-xl font-semibold text-blue-300" id="modalTitle"></h3>
+                    <button id="close-modal-btn" class="text-blue-400 hover:text-white transition-colors">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    </button>
+                </div>
+                <div id="recommendationsContent" class="space-y-4 max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar">
+                    <div id="loading" class="text-center py-8 hidden">
+                        <p class="text-blue-400 mb-2">Fetching recommendations...</p>
+                        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-400 mx-auto"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+	
+	<script>
+        const skillForm = document.getElementById('skill-form');
+        const skillSelect = document.getElementById('skill-select');
+        const ytVideoBtn = document.getElementById('yt-video-btn');
+        const getRecommendationsBtn = document.getElementById('get-recommendations-btn');
+        const recommendationsModal = document.getElementById('recommendationsModal');
+        const recommendationsContent = document.getElementById('recommendationsContent');
+        const modalTitle = document.getElementById('modalTitle');
+        const closeModalBtn = document.getElementById('close-modal-btn');
+        const governmentSchemesBtn = document.getElementById('government-schemes-btn');
+        const communityGroupsBtn = document.getElementById('community-groups-btn');
+        const mentorshipProgramsBtn = document.getElementById('mentorship-programs-btn');
+        const faqBtn = document.getElementById('faq-btn');
+        const contactSupportBtn = document.getElementById('contact-support-btn');
+        const fileComplaintBtn = document.getElementById('file-complaint-btn');
 
-    <script id="userSkillsData" type="application/json">{{ user_profile.selected_skills|safe }}</script>
+        // Close modal function
+        window.closeModal = function() {
+            recommendationsModal.classList.add('hidden');
+        };
+        closeModalBtn.addEventListener('click', closeModal);
+		
+		// This function simulates making an API call to a backend or a generative model
+        async function getRecommendations(prompt, schema) {
+            const API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=";
+            const apiKey = ""; 
 
-    <script>
-    // This entire script block remains unchanged as it handles logic, not primary styling.
-    // The functions below will now populate the dark-themed modal.
-    // I'll just re-style the helper functions that generate HTML.
-    
-    // --- Resource Fetchers (no changes needed in the functions themselves) ---
-    async function getSkillRecommendations(skillType) { /* ... same as original ... */ }
-    async function getCertificationLinks(skillType) { /* ... same as original ... */ }
-    // ... all other async data fetching functions remain the same ...
+            const payload = {
+                contents: [{ parts: [{ text: prompt }] }],
+                tools: [{ "google_search": {} }],
+                generationConfig: {
+                    responseMimeType: "application/json",
+                    responseSchema: schema
+                }
+            };
 
-    // --- DISPLAY FUNCTIONS (Updated for Dark Theme) ---
-    function displaySkillRecommendations(recommendations) {
-        const content = document.getElementById('skillRecommendationsContent');
-        let html = '<div class="space-y-4">';
-        recommendations.forEach(rec => {
-            html += `
-                <div class="border border-slate-700 rounded-lg p-4 bg-slate-800/50 hover:bg-slate-700/50">
-                    <div class="flex items-start justify-between">
-                        <div class="flex-1">
-                            <h4 class="font-medium text-white">${rec.title}</h4>
-                            <p class="text-sm text-slate-400 mt-1">${rec.description}</p>
-                            <div class="flex items-center mt-2 space-x-4">
-                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-cyan-500/10 text-cyan-300">${rec.platform}</span>
-                                <span class="text-sm text-slate-500">${rec.duration}</span>
-                                <span class="text-sm text-slate-500">${rec.level}</span>
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) {
+                    throw new Error(`API error: ${response.statusText}`);
+                }
+                
+                const result = await response.json();
+                const textContent = result?.candidates?.[0]?.content?.parts?.[0]?.text;
+                if (!textContent) {
+                    throw new Error("API response is empty or malformed.");
+                }
+                return JSON.parse(textContent);
+
+            } catch (error) {
+                console.error("Error fetching recommendations:", error);
+                // Fallback to local recommendations if API fails
+                return fallbackRecommendations(skillSelect.value);
+            }
+        }
+		
+		// --- Fallback Data (for when the API fails) ---
+        function fallbackRecommendations(skill) {
+            const data = {
+                "Dabba Service": [
+                    {
+                        "title": "FSSAI Food Safety Certification",
+                        "description": "An essential certification in India for food businesses to ensure hygiene and safety standards. Helps build customer trust.",
+                        "type": "Certification",
+                        "link": "https://fssai.gov.in/cms/training-and-capacity-building.php"
+                    },
+                    {
+                        "title": "Mastering Indian Cuisine - YouTube",
+                        "description": "A YouTube channel with tutorials on mastering regional Indian dishes, perfect for expanding your menu.",
+                        "type": "YouTube Video",
+                        "link": "https://www.youtube.com/results?search_query=mastering+indian+cuisine+recipes+for+beginners"
+                    },
+                    {
+                        "title": "Online Course on Catering Management",
+                        "description": "Learn the business side of food services, including menu planning, cost management, and customer service.",
+                        "type": "Course",
+                        "link": "https://www.coursera.org/courses?query=catering%20management"
+                    }
+                ],
+                "Painter": [
+                    {
+                        "title": "Pradhan Mantri Kaushal Vikas Yojana (PMKVY)",
+                        "description": "Government scheme offering free skill training and certification in various trades, including painting and other crafts.",
+                        "type": "Government Scheme",
+                        "link": "https://www.pmkvyofficial.org/"
+                    },
+                    {
+                        "title": "Art Business Masterclass - YouTube",
+                        "description": "Learn how to price your art, market yourself online, and find clients for commissioned work.",
+                        "type": "YouTube Video",
+                        "link": "https://www.youtube.com/results?search_query=art+business+masterclass+india"
+                    },
+                    {
+                        "title": "Local Artist Guilds (Mumbai, Delhi, etc.)",
+                        "description": "Connect with local artist communities for workshops, exhibitions, and networking opportunities. (Search for local groups on Facebook or Meetup).",
+                        "type": "Community Group",
+                        "link": "https://www.facebook.com/search/groups/?q=artist%20community%20india"
+                    }
+                ],
+                "IT Freelancer": [
+                    {
+                        "title": "Google Digital Garage",
+                        "description": "Free online courses and certifications on digital marketing, data analytics, and other key digital skills.",
+                        "type": "Certification",
+                        "link": "https://learndigital.withgoogle.com/digitalgarage"
+                    },
+                    {
+                        "title": "Freelancing in India - The Complete Guide (YouTube)",
+                        "description": "A detailed guide on how to get started, set rates, and find clients as a freelance IT professional in India.",
+                        "type": "YouTube Video",
+                        "link": "https://www.youtube.com/results?search_query=freelancing+in+india+for+it+professionals"
+                    },
+                    {
+                        "title": "HubSpot Academy Certifications",
+                        "description": "Gain industry-recognized certifications in inbound marketing, social media, and content strategy.",
+                        "type": "Certification",
+                        "link": "https://academy.hubspot.com/"
+                    }
+                ],
+                "Web Developer": [
+                    {
+                        "title": "The Odin Project",
+                        "description": "A free, open-source curriculum to learn web development from scratch, with a strong focus on practical projects.",
+                        "type": "Course",
+                        "link": "https://www.theodinproject.com/"
+                    },
+                    {
+                        "title": "JavaScript Mastery (YouTube)",
+                        "description": "Popular channel with in-depth tutorials and full-stack project builds for aspiring web developers.",
+                        "type": "YouTube Video",
+                        "link": "https://www.youtube.com/results?search_query=javascript+mastery"
+                    },
+                    {
+                        "title": "FreeCodeCamp India Community",
+                        "description": "Join the local FreeCodeCamp community to connect with other developers and participate in coding challenges and meetups.",
+                        "type": "Community Group",
+                        "link": "https://www.facebook.com/groups/freecodecampindia/"
+                    }
+                ],
+                "Electrician": [
+                    {
+                        "title": "National Skill Development Corporation (NSDC)",
+                        "description": "Government-backed certification and training programs for electricians, recognized throughout India.",
+                        "type": "Certification",
+                        "link": "https://www.nsdcindia.org/find-training-centre"
+                    },
+                    {
+                        "title": "Industrial Electrician Training Videos (YouTube)",
+                        "description": "Tutorials on advanced electrical wiring, safety protocols, and troubleshooting industrial systems.",
+                        "type": "YouTube Video",
+                        "link": "https://www.youtube.com/results?search_query=industrial+electrician+training+india"
+                    },
+                    {
+                        "title": "Pradhan Mantri Vishwakarma Scheme",
+                        "description": "A government scheme that provides financial and technical support to traditional artisans and craftspeople, including electricians.",
+                        "type": "Government Scheme",
+                        "link": "https://pmvishwakarma.gov.in/"
+                    }
+                ]
+            };
+            return data[skill] || [];
+        }
+		
+		// --- Skill Development Section ---
+        ytVideoBtn.addEventListener('click', async () => {
+            const skill = skillSelect.value;
+            modalTitle.textContent = `YouTube Videos for ${skill}`;
+            recommendationsModal.classList.remove('hidden');
+            recommendationsContent.innerHTML = `<div id="loading" class="text-center py-8">
+                <p class="text-blue-400 mb-2">Fetching YouTube videos...</p>
+                <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-400 mx-auto"></div>
+            </div>`;
+
+            const prompt = `Generate a list of 4-5 relevant and high-quality YouTube videos for a freelancer with the primary skill: ${skill}. The videos should be tutorials or educational content. For each video, provide the title, a short description, and a link. Format the response as a JSON array of objects with keys 'title', 'description', and 'link'.`;
+            const schema = {
+                type: "ARRAY",
+                items: {
+                    type: "OBJECT",
+                    properties: {
+                        title: { type: "STRING" },
+                        description: { type: "STRING" },
+                        link: { type: "STRING" }
+                    }
+                }
+            };
+            const youtubeVideos = await getRecommendations(prompt, schema);
+            renderYouTubeVideos(youtubeVideos);
+        });
+
+        getRecommendationsBtn.addEventListener('click', async () => {
+            const skill = skillSelect.value;
+            modalTitle.textContent = `Course Recommendations for ${skill}`;
+            recommendationsModal.classList.remove('hidden');
+            recommendationsContent.innerHTML = `<div id="loading" class="text-center py-8">
+                <p class="text-blue-400 mb-2">Fetching course recommendations...</p>
+                <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-400 mx-auto"></div>
+            </div>`;
+
+            const prompt = `Generate a list of 4-5 official certifications or courses for a freelancer with the primary skill: ${skill}. Focus on resources relevant to the Indian market. For each resource, provide the title, a short description, a type (e.g., 'Certification', 'Course'), and a link. Format the response as a JSON array of objects with keys 'title', 'description', 'type', and 'link'.`;
+            const schema = {
+                type: "ARRAY",
+                items: {
+                    type: "OBJECT",
+                    properties: {
+                        title: { type: "STRING" },
+                        description: { type: "STRING" },
+                        type: { type: "STRING" },
+                        link: { type: "STRING" }
+                    }
+                }
+            };
+            const recommendations = await getRecommendations(prompt, schema);
+            renderGeneralRecommendations(recommendations);
+        });
+		
+		// --- Financial Support Section ---
+        const financialSchemes = {
+            title: "Government Schemes for Small Businesses",
+            description: "Explore these government schemes to get financial assistance, training, and support to start or grow your business.",
+            recs: [
+                {
+                    "title": "Pradhan Mantri Mudra Yojana (PMMY)",
+                    "description": "Provides micro-credit loans up to ₹10 Lakh to non-corporate, non-farm small/micro enterprises. Ideal for starting or expanding a business.",
+                    "type": "Loan Scheme",
+                    "link": "https://www.mudra.org.in/"
+                },
+                {
+                    "title": "Pradhan Mantri Vishwakarma Scheme",
+                    "description": "Supports traditional artisans and craftspeople with skill training, toolkit incentives, and collateral-free credit support up to ₹3 Lakh.",
+                    "type": "Social Security",
+                    "link": "https://pmvishwakarma.gov.in/"
+                },
+                {
+                    "title": "Stand-Up India Scheme",
+                    "description": "Facilitates bank loans between ₹10 Lakh and ₹1 Crore for at least one SC/ST borrower and one woman borrower per bank branch to set up a greenfield enterprise.",
+                    "type": "Loan Scheme",
+                    "link": "https://www.standupmitra.in/"
+                },
+                {
+                    "title": "Startup India Seed Fund Scheme",
+                    "description": "Provides financial assistance to eligible startups for proof of concept, prototype development, product trials, market entry, and commercialization.",
+                    "type": "Grant/Fund",
+                    "link": "https://www.startupindia.gov.in/seed-fund-scheme/"
+                },
+            ]
+        };
+        
+        governmentSchemesBtn.addEventListener('click', async () => {
+            modalTitle.textContent = financialSchemes.title;
+            recommendationsModal.classList.remove('hidden');
+            recommendationsContent.innerHTML = `<div id="loading" class="text-center py-8">
+                <p class="text-blue-400 mb-2">Fetching financial resources...</p>
+                <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-400 mx-auto"></div>
+            </div>`;
+            
+            // Simulating API call with a delay
+            await new Promise(r => setTimeout(r, 1000));
+            renderFinancialResources(financialSchemes.recs);
+        });
+
+        // --- Community Support Section ---
+        communityGroupsBtn.addEventListener('click', async () => {
+            modalTitle.textContent = "Community Support";
+            recommendationsModal.classList.remove('hidden');
+            recommendationsContent.innerHTML = `<div id="loading" class="text-center py-8">
+                <p class="text-blue-400 mb-2">Fetching community groups...</p>
+                <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-400 mx-auto"></div>
+            </div>`;
+            
+            const prompt = "Generate a list of 4-5 well-known online communities for Indian freelancers. Include a mix of platforms like Facebook, Telegram, and others. For each community, provide a short description, a type (e.g., 'Facebook Group', 'Telegram Channel'), and a link. Format the response as a JSON array of objects with keys 'title', 'description', 'type', and 'link'.";
+            const schema = {
+                type: "ARRAY",
+                items: {
+                    type: "OBJECT",
+                    properties: {
+                        title: { type: "STRING" },
+                        description: { type: "STRING" },
+                        type: { type: "STRING" },
+                        link: { type: "STRING" }
+                    }
+                }
+            };
+            
+            const communities = await getRecommendations(prompt, schema);
+            renderCommunityGroups(communities);
+        });
+
+        // Add a placeholder for getMentorshipPrograms for completeness
+        mentorshipProgramsBtn.addEventListener('click', function() {
+            modalTitle.textContent = "Mentorship Programs";
+            recommendationsModal.classList.remove('hidden');
+            recommendationsContent.innerHTML = '<div class="text-center py-8 text-purple-400">Mentorship program recommendations are coming soon!</div>';
+        });
+		
+		// --- Help & Support Section ---
+        faqBtn.addEventListener('click', () => {
+            modalTitle.textContent = 'Frequently Asked Questions';
+            recommendationsModal.classList.remove('hidden');
+            recommendationsContent.innerHTML = `
+                <div class="space-y-4 text-blue-200">
+                    <p class="font-semibold">Q: How do I get paid for my work?</p>
+                    <p class="text-sm ml-4">A: Payments are held in a secure escrow account and released to you once the project is approved by the client.</p>
+                    <p class="font-semibold">Q: What if a client is not satisfied with my work?</p>
+                    <p class="text-sm ml-4">A: The platform has a built-in dispute resolution system. We will mediate between you and the client to find a fair solution.</p>
+                    <p class="font-semibold">Q: How can I improve my skills?</p>
+                    <p class="text-sm ml-4">A: Use the "Skill Development" section to find courses, certifications, and YouTube videos tailored to your specific skill set.</p>
+                </div>
+            `;
+        });
+        
+        contactSupportBtn.addEventListener('click', () => {
+            modalTitle.textContent = 'Contact Support';
+            recommendationsModal.classList.remove('hidden');
+            recommendationsContent.innerHTML = `
+                <div class="space-y-4 text-blue-200">
+                    <p class="font-semibold">Need help?</p>
+                    <p class="text-sm">You can reach our support team by emailing <a href="mailto:support@localfreelancer.in" class="text-blue-400 hover:underline">support@localfreelancer.in</a>.</p>
+                    <p class="text-sm">Our support team is available Monday to Friday, 9:00 AM to 6:00 PM IST.</p>
+                </div>
+            `;
+        });
+        
+        fileComplaintBtn.addEventListener('click', () => {
+            modalTitle.textContent = 'File a Complaint';
+            recommendationsModal.classList.remove('hidden');
+            recommendationsContent.innerHTML = `
+                <div class="space-y-4 text-blue-200">
+                    <p class="font-semibold">File a new complaint</p>
+                    <p class="text-sm">Please send a detailed email to <a href="mailto:complaints@localfreelancer.in" class="text-red-400 hover:underline">complaints@localfreelancer.in</a> with the following information:</p>
+                    <ul class="list-disc list-inside text-sm ml-4">
+                        <li>Your freelancer ID</li>
+                        <li>The client's name or company</li>
+                        <li>The project name or ID</li>
+                        <li>A detailed description of the issue</li>
+                    </ul>
+                    <p class="text-sm mt-4">Our team will review your complaint and get back to you within 48 hours.</p>
+                </div>
+            `;
+        });
+
+		function renderGeneralRecommendations(recs) {
+            let html = '';
+            if (recs && recs.length > 0) {
+                html += '<div class="space-y-4">';
+                recs.forEach(rec => {
+                    html += `
+                        <div class="border border-blue-700 rounded-lg p-4 bg-blue-900/40 hover:bg-blue-800/50 transition-colors shadow-sm">
+                            <div class="flex items-start justify-between">
+                                <div class="flex-1">
+                                    <span class="inline-block px-2 py-1 text-xs font-semibold rounded-full bg-blue-700 text-blue-100 mb-2">${rec.type}</span>
+                                    <h4 class="font-medium text-blue-100 text-lg">${rec.title}</h4>
+                                    <p class="text-sm text-blue-300 mt-1">${rec.description}</p>
+                                </div>
+                                <div class="ml-4 flex-shrink-0">
+                                    <a href="${rec.link}" target="_blank" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg text-white bg-blue-600 hover:bg-blue-700 transition-colors shadow-md transform hover:scale-105">View Resource</a>
+                                </div>
                             </div>
                         </div>
-                        <div class="ml-4">
-                            <a href="${rec.url}" target="_blank" class="inline-flex items-center px-3 py-1 border border-transparent text-sm font-medium rounded-md text-slate-900 bg-cyan-400 hover:bg-cyan-300 transition-colors">Enroll Now</a>
-                        </div>
-                    </div>
-                </div>`;
-        });
-        html += '</div>';
-        content.innerHTML = html;
-    }
-
-    // --- HELPER FUNCTIONS (Updated for Dark Theme) ---
-    function loadingHtml(message) {
-        return `<div class="text-center text-slate-400"><div class="animate-spin rounded-full h-8 w-8 border-b-2 border-cyan-400 mx-auto"></div><p class="mt-2">${message}</p></div>`;
-    }
-
-    function errorHtml(message) {
-        return `<div class="text-red-400 text-center"><svg class="w-8 h-8 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"></path></svg><p>${message}</p></div>`;
-    }
-
-    function displayGenericResources(resources) {
-        const content = document.getElementById('skillRecommendationsContent');
-        if (!resources || resources.length === 0) {
-            content.innerHTML = '<div class="text-center text-slate-500">No resources available at the moment. Please try again later.</div>';
-            return;
+                    `;
+                });
+                html += '</div>';
+            } else {
+                html = '<div class="text-center py-8 text-blue-400">No recommendations available for this skill at the moment.</div>';
+            }
+            recommendationsContent.innerHTML = html;
         }
-        let html = '<div class="space-y-4">';
-        resources.forEach(resource => {
-            html += `
-                <div class="border border-slate-700 rounded-lg p-4 bg-slate-800/50 hover:bg-slate-700/50">
-                    <div class="flex items-start justify-between">
-                        <div class="flex-1">
-                            <h4 class="font-medium text-white">${resource.title || 'Resource'}</h4>
-                            <p class="text-sm text-slate-400 mt-1">${resource.description || 'No description available'}</p>
-                            <div class="flex items-center mt-2 space-x-4">
-                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-cyan-500/10 text-cyan-300">${resource.type || 'Resource'}</span>
+
+        function renderYouTubeVideos(videos) {
+            let html = '';
+            if (videos && videos.length > 0) {
+                html += '<div class="space-y-4">';
+                videos.forEach(video => {
+                    html += `
+                        <div class="border border-blue-700 rounded-lg p-4 bg-blue-900/40 hover:bg-blue-800/50 transition-colors shadow-sm">
+                            <div class="flex items-start justify-between">
+                                <div class="flex-1">
+                                    <span class="inline-block px-2 py-1 text-xs font-semibold rounded-full bg-blue-700 text-blue-100 mb-2">YouTube Video</span>
+                                    <h4 class="font-medium text-blue-100 text-lg">${video.title}</h4>
+                                    <p class="text-sm text-blue-300 mt-1">${video.description}</p>
+                                </div>
+                                <div class="ml-4 flex-shrink-0">
+                                    <a href="${video.link}" target="_blank" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg text-white bg-blue-600 hover:bg-blue-700 transition-colors shadow-md transform hover:scale-105">Watch Now</a>
+                                </div>
                             </div>
                         </div>
-                        <div class="ml-4">
-                            <a href="${resource.url || '#'}" target="_blank" class="inline-flex items-center px-3 py-1 border border-transparent text-sm font-medium rounded-md text-slate-900 bg-cyan-400 hover:bg-cyan-300 transition-colors">Visit Resource</a>
+                    `;
+                });
+                html += '</div>';
+            } else {
+                html = '<div class="text-center py-8 text-blue-400">No YouTube videos available for this skill at the moment.</div>';
+            }
+            recommendationsContent.innerHTML = html;
+        }
+
+        function renderFinancialResources(recs) {
+            let html = '';
+            if (recs && recs.length > 0) {
+                html += `<p class="text-sm text-green-300 mb-4">Explore these government schemes to get financial assistance, training, and support to start or grow your business.</p>`;
+                html += '<div class="space-y-4">';
+                recs.forEach(rec => {
+                    html += `
+                        <div class="border border-green-700 rounded-lg p-4 bg-green-900/40 hover:bg-green-800/50 transition-colors shadow-sm">
+                            <div class="flex items-start justify-between">
+                                <div class="flex-1">
+                                    <span class="inline-block px-2 py-1 text-xs font-semibold rounded-full bg-green-700 text-green-100 mb-2">${rec.type}</span>
+                                    <h4 class="font-medium text-green-100 text-lg">${rec.title}</h4>
+                                    <p class="text-sm text-green-300 mt-1">${rec.description}</p>
+                                </div>
+                                <div class="ml-4 flex-shrink-0">
+                                    <a href="${rec.link}" target="_blank" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg text-white bg-green-600 hover:bg-green-700 transition-colors shadow-md transform hover:scale-105">View Details</a>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+                html += '</div>';
+            } else {
+                html = '<div class="text-center py-8 text-green-400">No financial resources available at the moment.</div>';
+            }
+            recommendationsContent.innerHTML = html;
+        }
+
+        function renderCommunityGroups(recs) {
+            let html = '';
+            if (recs && recs.length > 0) {
+                html += '<div class="space-y-4">';
+                recs.forEach(rec => {
+                    html += `
+                        <div class="border border-purple-700 rounded-lg p-4 bg-purple-900/40 hover:bg-purple-800/50 transition-colors shadow-sm">
+                            <div class="flex items-start justify-between">
+                                <div class="flex-1">
+                                    <span class="inline-block px-2 py-1 text-xs font-semibold rounded-full bg-purple-700 text-purple-100 mb-2">${rec.type}</span>
+                                    <h4 class="font-medium text-purple-100 text-lg">${rec.title}</h4>
+                                    <p class="text-sm text-purple-300 mt-1">${rec.description}</p>
+                                </div>
+                                <div class="ml-4 flex-shrink-0">
+                                    <a href="${rec.link}" target="_blank" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg text-white bg-purple-600 hover:bg-purple-700 transition-colors shadow-md transform hover:scale-105">Join Group</a>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+                html += '</div>';
+            } else {
+                html = '<div class="text-center py-8 text-purple-400">No community groups available at the moment.</div>';
+            }
+            recommendationsContent.innerHTML = html;
+        }
+        
+        // Prevent alert and confirm dialogs
+        window.alert = function(message) {
+            const createModal = document.createElement('div');
+            createModal.className = 'fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50';
+            createModal.innerHTML = `
+                <div class="bg-gray-800 border-2 border-blue-700 rounded-xl shadow-lg p-6 w-80 text-center">
+                    <p class="text-lg text-blue-200 mb-4">${message}</p>
+                    <button class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded" onclick="this.parentElement.parentElement.remove()">OK</button>
+                </div>
+            `;
+            document.body.appendChild(createModal);
+        };
+        window.confirm = function(message) {
+            return new Promise((resolve) => {
+                const createModal = document.createElement('div');
+                createModal.className = 'fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50';
+                createModal.innerHTML = `
+                    <div class="bg-gray-800 border-2 border-blue-700 rounded-xl shadow-lg p-6 w-80 text-center">
+                        <p class="text-lg text-blue-200 mb-4">${message}</p>
+                        <div class="flex justify-around">
+                            <button class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded" onclick="this.parentElement.parentElement.remove(); resolve(true);">OK</button>
+                            <button class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded" onclick="this.parentElement.parentElement.remove(); resolve(false);">Cancel</button>
                         </div>
                     </div>
-                </div>`;
-        });
-        html += '</div>';
-        content.innerHTML = html;
-    }
-
-    // --- The rest of the original script ---
-    function closeSkillModal() { /* ... same as original ... */ }
-    async function getUserSkills() { /* ... same as original ... */ }
-    function getCookie(name) { /* ... same as original ... */ }
-    function contactSupport() { /* ... same as original ... */ }
-    // ... all other functions remain the same ...
-    document.getElementById('skillRecommendationsModal').addEventListener('click', function(e) {
-        if (e.target === this) {
-            closeSkillModal();
-        }
-    });
+                `;
+                document.body.appendChild(createModal);
+            });
+        };
     </script>
-</div>
-{% endblock %}
+
+ {% endblock %}

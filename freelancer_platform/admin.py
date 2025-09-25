@@ -5,6 +5,14 @@ from .models import UserProfile, Job, Application, JobRequest, WorkExample, Paym
 class UserProfileAdmin(admin.ModelAdmin):
     list_display = ['user', 'user_type', 'phone', 'experience_years', 'hourly_rate', 'created_at']
     list_filter = ['user_type', 'created_at']
+
+from .models import LocalResource
+
+@admin.register(LocalResource)
+class LocalResourceAdmin(admin.ModelAdmin):
+    list_display = ['title', 'resource_type', 'location', 'credibility', 'is_active', 'created_at']
+    list_filter = ['resource_type', 'is_active', 'location', 'credibility']
+    search_fields = ['title', 'description', 'relevance_tags']
     search_fields = ['user__username', 'user__email', 'phone', 'skills']
 
 @admin.register(Job)
