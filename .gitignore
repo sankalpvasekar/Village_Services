@@ -1,0 +1,24 @@
+﻿# Django Git Ignore
+# Python cache
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Virtual environment
+venv/
+.env/
+*.env
+
+# Django stuff
+*.sqlite3
+db.sqlite3
+media/
+staticfiles/
+
+# IDE/project settings
+.vscode/
+.idea/
+
+# System files
+.DS_Store
+Thumbs.db
