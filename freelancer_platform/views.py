@@ -1,3 +1,5 @@
+# C:\Users\DDR\OneDrive\Documents\local_freelancer_final\Local_Free_Lancer_New\freelancer_platform\views.py
+
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.decorators import login_required
@@ -7,18 +9,20 @@ from django.db import transaction
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
+from django.db.models import Q, F
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 import json
 import requests
-from django.core.paginator import Paginator
-from .models import Message
 import os
 import re, json as pyjson
-from .models import UserProfile, Job, Application, JobRequest, WorkExample, Payment, WorkTracking, Complaint, LocalResource
-from .forms import UserRegistrationForm, JobForm, ApplicationForm, JobRequestForm, FreelancerProfileForm, WorkExampleForm, PaymentForm, WorkTrackingForm, ComplaintForm, AdminComplaintResolutionForm, RecruiterProfileForm, RecruiterUserForm
 from django.utils import timezone
+from .models import UserProfile, Job, Application, JobRequest, WorkExample, Payment, WorkTracking, Complaint, LocalResource, Message
+from .forms import UserRegistrationForm, JobForm, ApplicationForm, JobRequestForm, FreelancerProfileForm, WorkExampleForm, PaymentForm, WorkTrackingForm, ComplaintForm, AdminComplaintResolutionForm, RecruiterProfileForm, RecruiterUserForm
 from .ai_utils import get_skill_recommendations, get_similar_skills, get_job_matching_score
 from .api_config import get_api_config, get_skill_config, is_api_enabled
 
+
+# --- Gemini API and fallback functions ---
 GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY', 'AIzaSyB4Owr1pklmI7WZUE5PqM07HGGZ3drBjRE')
 
 def fetch_gemini_resources(skills, resource_type, api_key=GEMINI_API_KEY):
@@ -47,15 +51,11 @@ def fetch_gemini_resources(skills, resource_type, api_key=GEMINI_API_KEY):
         
         # Try to extract JSON from the response
         try:
-            # Look for JSON array in the response
             match = re.search(r'\[.*\]', text, re.DOTALL)
             if match:
                 return pyjson.loads(match.group(0))
-            
-            # If no array found, try to parse the entire response
             return pyjson.loads(text)
         except pyjson.JSONDecodeError:
-            # If JSON parsing fails, return fallback resources
             print(f"Failed to parse Gemini response: {text}")
             return get_fallback_resources(resource_type)
             
@@ -64,88 +64,30 @@ def fetch_gemini_resources(skills, resource_type, api_key=GEMINI_API_KEY):
         return get_fallback_resources(resource_type)
 
 def get_fallback_resources(resource_type):
-    """Provide fallback resources when Gemini API fails"""
     fallback_resources = {
         'financial support and planning': [
-            {
-                'title': 'Financial Planning for Freelancers',
-                'description': 'Comprehensive guide to managing finances as a freelancer',
-                'type': 'Tool',
-                'url': 'https://www.mint.com/freelancer-finances'
-            },
-            {
-                'title': 'Budget Management App',
-                'description': 'Free budgeting tool for independent workers',
-                'type': 'Tool',
-                'url': 'https://www.youneedabudget.com'
-            }
+            {'title': 'Financial Planning for Freelancers', 'description': 'Comprehensive guide to managing finances as a freelancer', 'type': 'Tool', 'url': 'https://www.mint.com/freelancer-finances'},
+            {'title': 'Budget Management App', 'description': 'Free budgeting tool for independent workers', 'type': 'Tool', 'url': 'https://www.youneedabudget.com'}
         ],
         'community support and networking': [
-            {
-                'title': 'Local Freelancer Community',
-                'description': 'Connect with other freelancers in your area',
-                'type': 'Community',
-                'url': 'https://www.meetup.com/freelancers'
-            },
-            {
-                'title': 'Professional Networking Platform',
-                'description': 'Build your professional network',
-                'type': 'Platform',
-                'url': 'https://www.linkedin.com'
-            }
+            {'title': 'Local Freelancer Community', 'description': 'Connect with other freelancers in your area', 'type': 'Community', 'url': 'https://www.meetup.com/freelancers'},
+            {'title': 'Professional Networking Platform', 'description': 'Build your professional network', 'type': 'Platform', 'url': 'https://www.linkedin.com'}
         ],
         'legal support and worker rights': [
-            {
-                'title': 'Freelancer Legal Rights',
-                'description': 'Information about your rights as a freelancer',
-                'type': 'Information',
-                'url': 'https://www.freelancersunion.org/rights'
-            },
-            {
-                'title': 'Free Legal Aid Directory',
-                'description': 'Find free legal assistance in your area',
-                'type': 'Directory',
-                'url': 'https://www.lawhelp.org'
-            }
+            {'title': 'Freelancer Legal Rights', 'description': 'Information about your rights as a freelancer', 'type': 'Information', 'url': 'https://www.freelancersunion.org/rights'},
+            {'title': 'Free Legal Aid Directory', 'description': 'Find free legal assistance in your area', 'type': 'Directory', 'url': 'https://www.lawhelp.org'}
         ],
         'health and wellness support': [
-            {
-                'title': 'Healthcare for Freelancers',
-                'description': 'Health insurance options for independent workers',
-                'type': 'Information',
-                'url': 'https://www.healthcare.gov/freelancers'
-            },
-            {
-                'title': 'Mental Health Resources',
-                'description': 'Free mental health support for freelancers',
-                'type': 'Support',
-                'url': 'https://www.crisistextline.org'
-            }
+            {'title': 'Healthcare for Freelancers', 'description': 'Health insurance options for independent workers', 'type': 'Information', 'url': 'https://www.healthcare.gov/freelancers'},
+            {'title': 'Mental Health Resources', 'description': 'Free mental health support for freelancers', 'type': 'Support', 'url': 'https://www.crisistextline.org'}
         ],
         'emergency assistance and crisis support': [
-            {
-                'title': 'Emergency Assistance Hotline',
-                'description': '24/7 emergency support for freelancers',
-                'type': 'Hotline',
-                'url': 'tel:1-800-273-8255'
-            },
-            {
-                'title': 'Local Food Bank Directory',
-                'description': 'Find food assistance in your area',
-                'type': 'Directory',
-                'url': 'https://www.feedingamerica.org/find-your-local-foodbank'
-            }
+            {'title': 'Emergency Assistance Hotline', 'description': '24/7 emergency support for freelancers', 'type': 'Hotline', 'url': 'tel:1-800-273-8255'},
+            {'title': 'Local Food Bank Directory', 'description': 'Find food assistance in your area', 'type': 'Directory', 'url': 'https://www.feedingamerica.org/find-your-local-foodbank'}
         ]
     }
-    
-    return fallback_resources.get(resource_type, [
-        {
-            'title': 'General Resource',
-            'description': 'Resource for freelancers',
-            'type': 'Resource',
-            'url': 'https://www.example.com'
-        }
-    ])
+    return fallback_resources.get(resource_type, [{'title': 'General Resource', 'description': 'Resource for freelancers', 'type': 'Resource', 'url': 'https://www.example.com'}])
+
 
 def home(request):
     """Home page with login/register options"""
@@ -153,67 +95,62 @@ def home(request):
 
 def register(request):
     """User registration with user type selection"""
-    # Get user type from URL parameter
     user_type = request.GET.get('type', '')
-    
     if request.method == 'POST':
         form = UserRegistrationForm(request.POST)
         if form.is_valid():
             with transaction.atomic():
                 user = form.save()
-                user_profile = UserProfile.objects.create(
+                UserProfile.objects.create(
                     user=user,
                     user_type=form.cleaned_data['user_type'],
                     phone=form.cleaned_data.get('phone', ''),
                     address=form.cleaned_data.get('address', ''),
                 )
                 login(request, user)
-                
-                # Customize success message based on user type
-                if user_profile.user_type == 'freelancer':
-                    messages.success(request, f'Account created successfully! Welcome to Local Free-Lancer. Start finding job opportunities and building your career.')
+                if form.cleaned_data['user_type'] == 'freelancer':
+                    messages.success(request, 'Account created successfully! Welcome to Local Free-Lancer. Start finding job opportunities and building your career.')
                 else:
-                    messages.success(request, f'Account created successfully! Welcome to Local Free-Lancer. Start posting jobs and connecting with local talent.')
-                
-                return redirect('dashboard')
+                    messages.success(request, 'Account created successfully! Welcome to Local Free-Lancer. Start posting jobs and connecting with local talent.')
+                return redirect('login_redirect')
     else:
-        # Pre-populate user type if provided in URL
-        initial_data = {}
-        if user_type in ['freelancer', 'recruiter']:
-            initial_data['user_type'] = user_type
-        
+        initial_data = {'user_type': user_type} if user_type in ['freelancer', 'recruiter'] else {}
         form = UserRegistrationForm(initial=initial_data)
-    
     return render(request, 'freelancer_platform/register.html', {'form': form, 'user_type': user_type})
 
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.decorators import login_required
+from django.contrib import messages
+from .models import UserProfile, Job, Application, JobRequest
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+
 def user_login(request):
-    """User login"""
-    # Get user type from URL parameter for display purposes
-    user_type = request.GET.get('type', '')
-    
+    """User login with role-based validation."""
+    # Corrected line to get 'user_type' from the URL
+    user_type_from_url = request.GET.get('user_type', '') 
     if request.method == 'POST':
         username = request.POST.get('username')
         password = request.POST.get('password')
         user = authenticate(request, username=username, password=password)
-        
         if user is not None:
-            login(request, user)
-            
-            # Customize welcome message based on user type
             try:
                 user_profile = UserProfile.objects.get(user=user)
-                if user_profile.user_type == 'freelancer':
-                    messages.success(request, f'Welcome back, {user.username}! Ready to find your next opportunity?')
+                # Check if the user's profile type matches the login type
+                if user_profile.user_type.lower() == user_type_from_url.lower():
+                    login(request, user)
+                    if user_profile.user_type == 'freelancer':
+                        messages.success(request, f'Welcome back, {user.username}! Ready to find your next opportunity?')
+                    else:
+                        messages.success(request, f'Welcome back, {user.username}! Ready to connect with local talent?')
+                    return redirect('login_redirect')
                 else:
-                    messages.success(request, f'Welcome back, {user.username}! Ready to connect with local talent?')
+                    messages.error(request, 'Access denied. Your credentials do not match this login type.')
             except UserProfile.DoesNotExist:
-                messages.success(request, f'Welcome back, {user.username}!')
-            
-            return redirect('dashboard')
+                messages.error(request, 'User profile not found. Please contact support.')
         else:
             messages.error(request, 'Invalid username or password.')
-    
-    return render(request, 'freelancer_platform/login.html', {'user_type': user_type})
+    return render(request, 'freelancer_platform/login.html', {'user_type': user_type_from_url})
 
 @login_required
 def user_logout(request):
@@ -223,65 +160,78 @@ def user_logout(request):
     return redirect('home')
 
 @login_required
-def dashboard(request):
-    """User dashboard based on user type"""
+def login_redirect(request):
+    """Redirects authenticated users based on their user type."""
     try:
         user_profile = UserProfile.objects.get(user=request.user)
-
         if user_profile.user_type == 'freelancer':
-            # Freelancer dashboard
-            all_available_jobs = Job.objects.filter(status='open').exclude(
-                applications__freelancer=user_profile
-            ).order_by('-created_at') # Order by creation date, newest first
-
-            # --- PAGINATION LOGIC FOR AVAILABLE JOBS ---
-            # Get the current page number from the request's GET parameters
-            page = request.GET.get('page', 1)
-            # Create a Paginator object with 10 jobs per page
-            paginator = Paginator(all_available_jobs, 10) # Show 10 jobs per page
-
-            try:
-                available_jobs_page = paginator.page(page)
-            except PageNotAnInteger:
-                # If page is not an integer, deliver first page.
-                available_jobs_page = paginator.page(1)
-            except EmptyPage:
-                # If page is out of range (e.g. 9999), deliver last page of results.
-                available_jobs_page = paginator.page(paginator.num_pages)
-            # --- END PAGINATION LOGIC ---
-
-            my_applications = Application.objects.filter(freelancer=user_profile)
-            my_job_requests = JobRequest.objects.filter(freelancer=user_profile)
-
-            context = {
-                'user_profile': user_profile,
-                'available_jobs': available_jobs_page, # Pass the paginated object
-                'my_applications': my_applications,
-                'my_job_requests': my_job_requests,
-            }
-            return render(request, 'freelancer_platform/freelancer_dashboard.html', context)
-
+            return redirect('freelancer_dashboard')
+        elif user_profile.user_type == 'recruiter':
+            return redirect('recruiter_dashboard')
         else:
-            # Recruiter dashboard (no changes needed here for this request)
-            posted_jobs = Job.objects.filter(recruiter=user_profile)
-            active_jobs = posted_jobs.filter(status='open')
-            total_applications = Application.objects.filter(job__recruiter=user_profile)
-            job_requests = JobRequest.objects.filter(job__recruiter=user_profile)
-
-            context = {
-                'user_profile': user_profile,
-                'posted_jobs': posted_jobs,
-                'active_jobs': active_jobs,
-                'total_applications': total_applications,
-                'job_requests': job_requests,
-            }
-            return render(request, 'freelancer_platform/recruiter_dashboard.html', context)
-
+            messages.error(request, 'Your account type is not defined. Please contact support.')
+            logout(request)
+            return redirect('home')
     except UserProfile.DoesNotExist:
-        messages.error(request, 'User profile not found.')
+        messages.error(request, 'User profile not found. Please log in again.')
+        logout(request)
         return redirect('home')
 
-# API Views for Skill-Based Recommendations
+@login_required
+def freelancer_dashboard(request):
+    """Freelancer dashboard view"""
+    user_profile = get_object_or_404(UserProfile, user=request.user)
+    if user_profile.user_type != 'freelancer':
+        messages.error(request, 'Access denied. You are not a freelancer.')
+        return redirect('recruiter_dashboard')
+    
+    all_available_jobs = Job.objects.filter(status='open').exclude(
+        applications__freelancer=user_profile
+    ).order_by('-created_at')
+    
+    page = request.GET.get('page', 1)
+    paginator = Paginator(all_available_jobs, 10)
+    
+    try:
+        available_jobs_page = paginator.page(page)
+    except PageNotAnInteger:
+        available_jobs_page = paginator.page(1)
+    except EmptyPage:
+        available_jobs_page = paginator.page(paginator.num_pages)
+        
+    my_applications = Application.objects.filter(freelancer=user_profile)
+    my_job_requests = JobRequest.objects.filter(freelancer=user_profile)
+
+    context = {
+        'user_profile': user_profile,
+        'available_jobs': available_jobs_page,
+        'my_applications': my_applications,
+        'my_job_requests': my_job_requests,
+    }
+    return render(request, 'freelancer_platform/freelancer_dashboard.html', context)
+
+@login_required
+def recruiter_dashboard(request):
+    """Recruiter dashboard view"""
+    user_profile = get_object_or_404(UserProfile, user=request.user)
+    if user_profile.user_type != 'recruiter':
+        messages.error(request, 'Access denied. You are not a recruiter.')
+        return redirect('freelancer_dashboard')
+    
+    posted_jobs = Job.objects.filter(recruiter=user_profile)
+    active_jobs = posted_jobs.filter(status='open')
+    total_applications = Application.objects.filter(job__recruiter=user_profile)
+    job_requests = JobRequest.objects.filter(job__recruiter=user_profile)
+
+    context = {
+        'user_profile': user_profile,
+        'posted_jobs': posted_jobs,
+        'active_jobs': active_jobs,
+        'total_applications': total_applications,
+        'job_requests': job_requests,
+    }
+    return render(request, 'freelancer_platform/recruiter_dashboard.html', context)
+
 @login_required
 @csrf_exempt
 @require_http_methods(["POST"])
@@ -304,7 +254,7 @@ def skill_recommendations_api(request):
         # Optional: filter by location if profile has address
         if user_profile.address:
             loc = user_profile.address.lower()
-            local_qs = local_qs.filter(models.Q(location__iexact=user_profile.address) | models.Q(location__icontains=loc))
+            local_qs = local_qs.filter(Q(location__iexact=user_profile.address) | Q(location__icontains=loc))
         local_resources = list(local_qs.values('title','description','resource_type','credibility','url','location')[:20])
 
         # Fallback: AI/generic recommendations if no local data
@@ -345,7 +295,7 @@ def certification_links_api(request):
             'success': False,
             'error': str(e)
         }, status=500)
-
+    
 @login_required
 @csrf_exempt
 @require_http_methods(["POST"])
@@ -447,7 +397,7 @@ def health_resources_api(request):
                 'title': 'Local Health Center Finder',
                 'description': 'Find free and low-cost health clinics near you.',
                 'type': 'Health',
-                'url': 'https://www.example.com/health-centers',
+                'url': 'https://www.healthcare.gov/freelancers',
             }]
         return JsonResponse({'success': True, 'resources': resources})
     except Exception as e:
@@ -473,319 +423,93 @@ def emergency_resources_api(request):
     except Exception as e:
         return JsonResponse({'success': False, 'error': str(e)}, status=500)
 
-# Helper functions for API integrations
+# Helper functions for API integrations (no changes needed)
 def get_skill_recommendations_from_api(skill_type, user_skills, api_key, user_profile):
     """Get skill-based course recommendations from external APIs"""
-    # This is a mock implementation - in production, you would integrate with:
-    # - Coursera API
-    # - Udemy API
-    # - LinkedIn Learning API
-    # - edX API
-    
     recommendations = []
-    
-    # Mock data based on skill type and user skills
     if skill_type == 'general' or 'cooking' in user_skills:
         recommendations.extend([
-            {
-                'title': 'Professional Cooking Fundamentals',
-                'description': 'Learn essential cooking techniques and kitchen management skills',
-                'platform': 'Coursera',
-                'duration': '8 weeks',
-                'level': 'Beginner',
-                'url': 'https://www.coursera.org/learn/cooking-fundamentals'
-            },
-            {
-                'title': 'Culinary Arts Certificate Program',
-                'description': 'Comprehensive culinary training for professional development',
-                'platform': 'edX',
-                'duration': '12 weeks',
-                'level': 'Intermediate',
-                'url': 'https://www.edx.org/learn/culinary-arts'
-            }
+            {'title': 'Professional Cooking Fundamentals', 'description': 'Learn essential cooking techniques and kitchen management skills', 'platform': 'Coursera', 'duration': '8 weeks', 'level': 'Beginner', 'url': 'https://www.coursera.org/learn/cooking-fundamentals'},
+            {'title': 'Culinary Arts Certificate Program', 'description': 'Comprehensive culinary training for professional development', 'platform': 'edX', 'duration': '12 weeks', 'level': 'Intermediate', 'url': 'https://www.edx.org/learn/culinary-arts'}
         ])
-    
     if skill_type == 'general' or 'plumbing' in user_skills:
         recommendations.extend([
-            {
-                'title': 'Basic Plumbing Skills',
-                'description': 'Learn essential plumbing techniques and safety procedures',
-                'platform': 'Udemy',
-                'duration': '6 weeks',
-                'level': 'Beginner',
-                'url': 'https://www.udemy.com/course/basic-plumbing-skills'
-            },
-            {
-                'title': 'Advanced Plumbing Systems',
-                'description': 'Master complex plumbing systems and troubleshooting',
-                'platform': 'LinkedIn Learning',
-                'duration': '10 weeks',
-                'level': 'Advanced',
-                'url': 'https://www.linkedin.com/learning/advanced-plumbing-systems'
-            }
+            {'title': 'Basic Plumbing Skills', 'description': 'Learn essential plumbing techniques and safety procedures', 'platform': 'Udemy', 'duration': '6 weeks', 'level': 'Beginner', 'url': 'https://www.udemy.com/course/basic-plumbing-skills'},
+            {'title': 'Advanced Plumbing Systems', 'description': 'Master complex plumbing systems and troubleshooting', 'platform': 'LinkedIn Learning', 'duration': '10 weeks', 'level': 'Advanced', 'url': 'https://www.linkedin.com/learning/advanced-plumbing-systems'}
         ])
-    
     if skill_type == 'general' or 'electrical' in user_skills:
         recommendations.extend([
-            {
-                'title': 'Electrical Wiring Fundamentals',
-                'description': 'Learn safe electrical wiring practices and codes',
-                'platform': 'Coursera',
-                'duration': '8 weeks',
-                'level': 'Beginner',
-                'url': 'https://www.coursera.org/learn/electrical-wiring'
-            },
-            {
-                'title': 'Advanced Electrical Systems',
-                'description': 'Master complex electrical installations and maintenance',
-                'platform': 'edX',
-                'duration': '12 weeks',
-                'level': 'Advanced',
-                'url': 'https://www.edx.org/learn/advanced-electrical-systems'
-            }
+            {'title': 'Electrical Wiring Fundamentals', 'description': 'Learn safe electrical wiring practices and codes', 'platform': 'Coursera', 'duration': '8 weeks', 'level': 'Beginner', 'url': 'https://www.coursera.org/learn/electrical-wiring'},
+            {'title': 'Advanced Electrical Systems', 'description': 'Master complex electrical installations and maintenance', 'platform': 'edX', 'duration': '12 weeks', 'level': 'Advanced', 'url': 'https://www.edx.org/learn/advanced-electrical-systems'}
         ])
-    
-    # Add general skill development courses
     recommendations.extend([
-        {
-            'title': 'Business Communication Skills',
-            'description': 'Improve your professional communication and client interaction',
-            'platform': 'LinkedIn Learning',
-            'duration': '4 weeks',
-            'level': 'All Levels',
-            'url': 'https://www.linkedin.com/learning/business-communication'
-        },
-        {
-            'title': 'Customer Service Excellence',
-            'description': 'Learn to provide outstanding customer service and build client relationships',
-            'platform': 'Udemy',
-            'duration': '3 weeks',
-            'level': 'All Levels',
-            'url': 'https://www.udemy.com/course/customer-service-excellence'
-        }
+        {'title': 'Business Communication Skills', 'description': 'Improve your professional communication and client interaction', 'platform': 'LinkedIn Learning', 'duration': '4 weeks', 'level': 'All Levels', 'url': 'https://www.linkedin.com/learning/business-communication'},
+        {'title': 'Customer Service Excellence', 'description': 'Learn to provide outstanding customer service and build client relationships', 'platform': 'Udemy', 'duration': '3 weeks', 'level': 'All Levels', 'url': 'https://www.udemy.com/course/customer-service-excellence'}
     ])
-    
     return recommendations
 
 def get_certification_links_from_api(skill_type, user_skills, api_key, user_profile):
     """Get certification program links from external APIs"""
-    # This is a mock implementation - in production, you would integrate with:
-    # - Professional certification bodies
-    # - Industry-specific certification programs
-    # - Government certification programs
-    
     certifications = []
-    
-    # Mock data based on skill type and user skills
     if skill_type == 'general' or 'cooking' in user_skills:
         certifications.extend([
-            {
-                'title': 'ServSafe Food Handler Certification',
-                'description': 'Essential food safety certification for food service workers',
-                'provider': 'ServSafe',
-                'duration': '2-4 hours',
-                'cost': '15',
-                'url': 'https://www.servsafe.com/food-handler',
-                'enroll_url': 'https://www.servsafe.com/food-handler/enroll'
-            },
-            {
-                'title': 'Culinary Arts Professional Certificate',
-                'description': 'Professional certification in culinary arts and kitchen management',
-                'provider': 'American Culinary Federation',
-                'duration': '6 months',
-                'cost': '500',
-                'url': 'https://www.acfchefs.org/certification',
-                'enroll_url': 'https://www.acfchefs.org/certification/enroll'
-            }
+            {'title': 'ServSafe Food Handler Certification', 'description': 'Essential food safety certification for food service workers', 'provider': 'ServSafe', 'duration': '2-4 hours', 'cost': '15', 'url': 'https://www.servsafe.com/food-handler', 'enroll_url': 'https://www.servsafe.com/food-handler/enroll'},
+            {'title': 'Culinary Arts Professional Certificate', 'description': 'Comprehensive culinary training for professional development', 'provider': 'American Culinary Federation', 'duration': '6 months', 'cost': '500', 'url': 'https://www.acfchefs.org/certification', 'enroll_url': 'https://www.acfchefs.org/certification/enroll'}
         ])
-    
     if skill_type == 'general' or 'plumbing' in user_skills:
         certifications.extend([
-            {
-                'title': 'Plumbing Apprentice Certification',
-                'description': 'Entry-level plumbing certification for apprentices',
-                'provider': 'Plumbing-Heating-Cooling Contractors Association',
-                'duration': '1 year',
-                'cost': '300',
-                'url': 'https://www.phccweb.org/certification',
-                'enroll_url': 'https://www.phccweb.org/certification/enroll'
-            },
-            {
-                'title': 'Journeyman Plumber License',
-                'description': 'Professional plumbing license for experienced workers',
-                'provider': 'State Licensing Board',
-                'duration': '4 years',
-                'cost': '200',
-                'url': 'https://www.state.gov/plumbing-license',
-                'enroll_url': 'https://www.state.gov/plumbing-license/apply'
-            }
+            {'title': 'Plumbing Apprentice Certification', 'description': 'Entry-level plumbing certification for apprentices', 'provider': 'Plumbing-Heating-Cooling Contractors Association', 'duration': '1 year', 'cost': '300', 'url': 'https://www.phccweb.org/certification', 'enroll_url': 'https://www.phccweb.org/certification/enroll'},
+            {'title': 'Journeyman Plumber License', 'description': 'Professional plumbing license for experienced workers', 'provider': 'State Licensing Board', 'duration': '4 years', 'cost': '200', 'url': 'https://www.state.gov/plumbing-license', 'enroll_url': 'https://www.state.gov/plumbing-license/apply'}
         ])
-    
     if skill_type == 'general' or 'electrical' in user_skills:
         certifications.extend([
-            {
-                'title': 'Electrical Apprentice Certification',
-                'description': 'Entry-level electrical certification for apprentices',
-                'provider': 'National Electrical Contractors Association',
-                'duration': '1 year',
-                'cost': '250',
-                'url': 'https://www.necanet.org/certification',
-                'enroll_url': 'https://www.necanet.org/certification/enroll'
-            },
-            {
-                'title': 'Journeyman Electrician License',
-                'description': 'Professional electrical license for experienced workers',
-                'provider': 'State Licensing Board',
-                'duration': '4 years',
-                'cost': '180',
-                'url': 'https://www.state.gov/electrical-license',
-                'enroll_url': 'https://www.state.gov/electrical-license/apply'
-            }
+            {'title': 'Electrical Apprentice Certification', 'description': 'Entry-level electrical certification for apprentices', 'provider': 'National Electrical Contractors Association', 'duration': '1 year', 'cost': '250', 'url': 'https://www.necanet.org/certification', 'enroll_url': 'https://www.necanet.org/certification/enroll'},
+            {'title': 'Journeyman Electrician License', 'description': 'Professional electrical license for experienced workers', 'provider': 'State Licensing Board', 'duration': '4 years', 'cost': '180', 'url': 'https://www.state.gov/electrical-license', 'enroll_url': 'https://www.state.gov/electrical-license/apply'}
         ])
-    
-    # Add general professional certifications
     certifications.extend([
-        {
-            'title': 'Customer Service Professional Certification',
-            'description': 'Professional certification in customer service excellence',
-            'provider': 'Customer Service Institute',
-            'duration': '3 months',
-            'cost': '150',
-            'url': 'https://www.csi.org/certification',
-            'enroll_url': 'https://www.csi.org/certification/enroll'
-        },
-        {
-            'title': 'Small Business Management Certificate',
-            'description': 'Certificate in small business management and entrepreneurship',
-            'provider': 'Small Business Administration',
-            'duration': '6 months',
-            'cost': '100',
-            'url': 'https://www.sba.gov/certification',
-            'enroll_url': 'https://www.sba.gov/certification/enroll'
-        }
+        {'title': 'Customer Service Professional Certification', 'description': 'Professional certification in customer service excellence', 'provider': 'Customer Service Institute', 'duration': '3 months', 'cost': '150', 'url': 'https://www.csi.org/certification', 'enroll_url': 'https://www.csi.org/certification/enroll'},
+        {'title': 'Small Business Management Certificate', 'description': 'Certificate in small business management and entrepreneurship', 'provider': 'Small Business Administration', 'duration': '6 months', 'cost': '100', 'url': 'https://www.sba.gov/certification', 'enroll_url': 'https://www.sba.gov/certification/enroll'}
     ])
-    
     return certifications
 
 def get_online_learning_links_from_api(skill_type, user_skills, api_keys, user_profile):
     """Get online learning resources from multiple platforms"""
-    # This is a mock implementation - in production, you would integrate with:
-    # - Coursera API
-    # - Udemy API
-    # - LinkedIn Learning API
-    # - YouTube Learning API
-    
     resources = {
         'coursera': [],
         'udemy': [],
         'linkedin_learning': [],
         'youtube': []
     }
-    
-    # Mock data based on skill type and user skills
     if skill_type == 'general' or 'cooking' in user_skills:
         resources['coursera'].extend([
-            {
-                'title': 'Cooking Fundamentals',
-                'description': 'Learn basic cooking techniques and kitchen safety',
-                'type': 'Course',
-                'duration': '8 weeks',
-                'price': 'Free',
-                'url': 'https://www.coursera.org/learn/cooking-fundamentals'
-            }
+            {'title': 'Cooking Fundamentals', 'description': 'Learn basic cooking techniques and kitchen safety', 'type': 'Course', 'duration': '8 weeks', 'price': 'Free', 'url': 'https://www.coursera.org/learn/cooking-fundamentals'}
         ])
-        
         resources['udemy'].extend([
-            {
-                'title': 'Professional Cooking Masterclass',
-                'description': 'Comprehensive cooking course for professional development',
-                'type': 'Course',
-                'duration': '15 hours',
-                'price': '$29.99',
-                'url': 'https://www.udemy.com/course/professional-cooking'
-            }
+            {'title': 'Professional Cooking Masterclass', 'description': 'Comprehensive cooking course for professional development', 'type': 'Course', 'duration': '15 hours', 'price': '$29.99', 'url': 'https://www.udemy.com/course/professional-cooking'}
         ])
-        
         resources['youtube'].extend([
-            {
-                'title': 'Cooking Basics Playlist',
-                'description': 'Free cooking tutorials and tips',
-                'type': 'Video Series',
-                'duration': '5 hours',
-                'price': 'Free',
-                'url': 'https://www.youtube.com/playlist?list=cooking-basics'
-            }
+            {'title': 'Cooking Basics Playlist', 'description': 'Free cooking tutorials and tips', 'type': 'Video Series', 'duration': '5 hours', 'price': 'Free', 'url': 'https://www.youtube.com/playlist?list=cooking-basics'}
         ])
-    
     if skill_type == 'general' or 'plumbing' in user_skills:
         resources['linkedin_learning'].extend([
-            {
-                'title': 'Plumbing Essentials',
-                'description': 'Essential plumbing skills and safety procedures',
-                'type': 'Course',
-                'duration': '6 hours',
-                'price': 'Free with LinkedIn Premium',
-                'url': 'https://www.linkedin.com/learning/plumbing-essentials'
-            }
+            {'title': 'Plumbing Essentials', 'description': 'Essential plumbing skills and safety procedures', 'type': 'Course', 'duration': '6 hours', 'price': 'Free with LinkedIn Premium', 'url': 'https://www.linkedin.com/learning/plumbing-essentials'}
         ])
-        
         resources['youtube'].extend([
-            {
-                'title': 'DIY Plumbing Guide',
-                'description': 'Step-by-step plumbing tutorials',
-                'type': 'Video Series',
-                'duration': '3 hours',
-                'price': 'Free',
-                'url': 'https://www.youtube.com/playlist?list=diy-plumbing'
-            }
+            {'title': 'DIY Plumbing Guide', 'description': 'Step-by-step plumbing tutorials', 'type': 'Video Series', 'duration': '3 hours', 'price': 'Free', 'url': 'https://www.youtube.com/playlist?list=diy-plumbing'}
         ])
-    
     if skill_type == 'general' or 'electrical' in user_skills:
         resources['coursera'].extend([
-            {
-                'title': 'Electrical Safety Fundamentals',
-                'description': 'Learn electrical safety and basic wiring',
-                'type': 'Course',
-                'duration': '6 weeks',
-                'price': 'Free',
-                'url': 'https://www.coursera.org/learn/electrical-safety'
-            }
+            {'title': 'Electrical Safety Fundamentals', 'description': 'Learn electrical safety and basic wiring', 'type': 'Course', 'duration': '6 weeks', 'price': 'Free', 'url': 'https://www.coursera.org/learn/electrical-safety'}
         ])
-        
         resources['udemy'].extend([
-            {
-                'title': 'Electrical Wiring Complete Course',
-                'description': 'Complete guide to electrical wiring and installation',
-                'type': 'Course',
-                'duration': '12 hours',
-                'price': '$39.99',
-                'url': 'https://www.udemy.com/course/electrical-wiring-complete'
-            }
+            {'title': 'Electrical Wiring Complete Course', 'description': 'Complete guide to electrical wiring and installation', 'type': 'Course', 'duration': '12 hours', 'price': '$39.99', 'url': 'https://www.udemy.com/course/electrical-wiring-complete'}
         ])
-    
-    # Add general skill development resources
     resources['linkedin_learning'].extend([
-        {
-            'title': 'Professional Communication',
-            'description': 'Improve your professional communication skills',
-            'type': 'Course',
-            'duration': '4 hours',
-            'price': 'Free with LinkedIn Premium',
-            'url': 'https://www.linkedin.com/learning/professional-communication'
-        }
+        {'title': 'Professional Communication', 'description': 'Improve your professional communication skills', 'type': 'Course', 'duration': '4 hours', 'price': 'Free with LinkedIn Premium', 'url': 'https://www.linkedin.com/learning/professional-communication'}
     ])
-    
     resources['youtube'].extend([
-        {
-            'title': 'Business Skills for Freelancers',
-            'description': 'Essential business skills for independent workers',
-            'type': 'Video Series',
-            'duration': '2 hours',
-            'price': 'Free',
-            'url': 'https://www.youtube.com/playlist?list=business-skills-freelancers'
-        }
+        {'title': 'Business Skills for Freelancers', 'description': 'Essential business skills for independent workers', 'type': 'Video Series', 'duration': '2 hours', 'price': 'Free', 'url': 'https://www.youtube.com/playlist?list=business-skills-freelancers'}
     ])
-    
     return resources
 
 @login_required
@@ -1033,12 +757,10 @@ def freelancer_profile(request):
         if request.method == 'POST':
             form = FreelancerProfileForm(request.POST, request.FILES, instance=user_profile)
             if form.is_valid():
-                # Let Django handle the file upload automatically
                 form.save()
                 messages.success(request, 'Profile updated successfully!')
                 return redirect('freelancer_profile')
             else:
-                # Show form errors
                 for field, errors in form.errors.items():
                     for error in errors:
                         messages.error(request, f'{field}: {error}')
@@ -1339,7 +1061,6 @@ def release_payment(request, payment_id):
         messages.error(request, 'User profile not found.')
         return redirect('home')
 
-# Work Tracking Views
 @login_required
 def submit_work(request, payment_id):
     """Submit work completion (freelancer only)"""
@@ -1347,177 +1068,6 @@ def submit_work(request, payment_id):
         user_profile = UserProfile.objects.get(user=request.user)
         if user_profile.user_type != 'freelancer':
             messages.error(request, 'Only freelancers can submit work.')
-            return redirect('dashboard')
-        
-        payment = get_object_or_404(Payment, id=payment_id, freelancer=user_profile)
-        work_tracking = get_object_or_404(WorkTracking, payment=payment, freelancer=user_profile)
-        
-        if work_tracking.status == 'completed':
-            messages.warning(request, 'Work has already been submitted.')
-            return redirect('payment_detail', payment_id=payment.id)
-        
-        if request.method == 'POST':
-            form = WorkTrackingForm(request.POST, request.FILES)
-            if form.is_valid():
-                work_tracking.completion_notes = form.cleaned_data['completion_notes']
-                if form.cleaned_data['before_photos']:
-                    work_tracking.before_photos = form.cleaned_data['before_photos']
-                if form.cleaned_data['after_photos']:
-                    work_tracking.after_photos = form.cleaned_data['after_photos']
-                if form.cleaned_data['completion_video']:
-                    work_tracking.completion_video = form.cleaned_data['completion_video']
-                
-                work_tracking.mark_as_completed()
-                messages.success(request, 'Work submitted successfully! Waiting for recruiter confirmation.')
-                return redirect('payment_detail', payment_id=payment.id)
-        else:
-            form = WorkTrackingForm()
-        
-        context = {
-            'form': form,
-            'payment': payment,
-            'work_tracking': work_tracking,
-        }
-        return render(request, 'freelancer_platform/submit_work.html', context)
-    
-    except UserProfile.DoesNotExist:
-        messages.error(request, 'User profile not found.')
-        return redirect('home')
-
-# Complaint System Views
-@login_required
-def file_complaint(request, payment_id):
-    """File a complaint (both recruiter and freelancer)"""
-    try:
-        user_profile = UserProfile.objects.get(user=request.user)
-        payment = get_object_or_404(Payment, id=payment_id)
-        
-        # Check if user has access to this payment
-        if user_profile not in [payment.recruiter, payment.freelancer]:
-            messages.error(request, 'You do not have access to this payment.')
-            return redirect('dashboard')
-        
-        # Check if complaint already exists
-        existing_complaint = Complaint.objects.filter(payment=payment, complainant=user_profile).first()
-        if existing_complaint:
-            messages.warning(request, 'You have already filed a complaint for this payment.')
-            return redirect('complaint_detail', complaint_id=existing_complaint.id)
-        
-        if request.method == 'POST':
-            form = ComplaintForm(request.POST, request.FILES, user_type=user_profile.user_type)
-            if form.is_valid():
-                complaint = form.save(commit=False)
-                complaint.payment = payment
-                complaint.complainant = user_profile
-                complaint.save()
-                
-                # Update payment status to disputed
-                payment.status = 'disputed'
-                payment.save()
-                
-                messages.success(request, 'Complaint filed successfully! Admin will review it soon.')
-                return redirect('complaint_detail', complaint_id=complaint.id)
-        else:
-            form = ComplaintForm(user_type=user_profile.user_type)
-        
-        # Fetch user's complaints for side panel
-        my_complaints = Complaint.objects.filter(complainant=user_profile).order_by('-created_at')[:10]
-        context = {
-            'form': form,
-            'payment': payment,
-            'user_profile': user_profile,
-            'my_complaints': my_complaints,
-        }
-        return render(request, 'freelancer_platform/file_complaint.html', context)
-    
-    except UserProfile.DoesNotExist:
-        messages.error(request, 'User profile not found.')
-        return redirect('home')
-
-@login_required
-def complaint_detail(request, complaint_id):
-    """View complaint details"""
-    complaint = get_object_or_404(Complaint, id=complaint_id)
-    user_profile = UserProfile.objects.get(user=request.user)
-    
-    # Check if user has access to this complaint
-    if user_profile not in [complaint.complainant, complaint.payment.recruiter, complaint.payment.freelancer]:
-        messages.error(request, 'You do not have access to this complaint.')
-        return redirect('dashboard')
-    
-    context = {
-        'complaint': complaint,
-        'user_profile': user_profile,
-    }
-    return render(request, 'freelancer_platform/complaint_detail.html', context)
-
-@login_required
-def my_complaints(request):
-    """View user's complaints"""
-    try:
-        user_profile = UserProfile.objects.get(user=request.user)
-        complaints = Complaint.objects.filter(complainant=user_profile).order_by('-created_at')
-        
-        context = {
-            'complaints': complaints,
-            'user_profile': user_profile,
-        }
-        return render(request, 'freelancer_platform/my_complaints.html', context)
-    
-    except UserProfile.DoesNotExist:
-        messages.error(request, 'User profile not found.')
-        return redirect('home')
-
-# Admin Views
-@login_required
-def admin_complaints(request):
-    """Admin view for managing complaints"""
-    if not request.user.is_staff:
-        messages.error(request, 'Access denied. Admin privileges required.')
-        return redirect('dashboard')
-    
-    complaints = Complaint.objects.filter(status__in=['open', 'under_review']).order_by('-created_at')
-    
-    context = {
-        'complaints': complaints,
-    }
-    return render(request, 'freelancer_platform/admin_complaints.html', context)
-
-@login_required
-def resolve_complaint(request, complaint_id):
-    """Resolve complaint (admin only)"""
-    if not request.user.is_staff:
-        messages.error(request, 'Access denied. Admin privileges required.')
-        return redirect('dashboard')
-    
-    complaint = get_object_or_404(Complaint, id=complaint_id)
-    
-    if request.method == 'POST':
-        form = AdminComplaintResolutionForm(request.POST)
-        if form.is_valid():
-            resolution_type = form.cleaned_data['resolution_type']
-            admin_notes = form.cleaned_data['admin_notes']
-            resolution_amount = form.cleaned_data['resolution_amount']
-            
-            complaint.resolve_complaint(request.user, resolution_type, admin_notes, resolution_amount)
-            messages.success(request, 'Complaint resolved successfully!')
-            return redirect('admin_complaints')
-    else:
-        form = AdminComplaintResolutionForm()
-    
-    context = {
-        'form': form,
-        'complaint': complaint,
-    }
-    return render(request, 'freelancer_platform/resolve_complaint.html', context)
-
-@login_required
-def submit_work(request, payment_id):
-    """Freelancer submits work for review"""
-    try:
-        user_profile = UserProfile.objects.get(user=request.user)
-        if user_profile.user_type != 'freelancer':
-            messages.error(request, 'Access denied. Freelancer privileges required.')
             return redirect('dashboard')
     except UserProfile.DoesNotExist:
         messages.error(request, 'User profile not found.')
@@ -1759,7 +1309,6 @@ def payment_test(request):
     }
     return render(request, 'freelancer_platform/payment_test.html', context)
 
-
 @login_required
 def chat_page(request, other_user_id):
     """
@@ -1779,9 +1328,6 @@ def send_message(request):
     Handles an AJAX POST request to send a new message.
     It expects a JSON payload with 'receiver_id' and 'message_content'.
     """
-    # This view is marked as csrf_exempt for simplicity in an AJAX setup.
-    # In a production environment, you should include a CSRF token in your
-    # front-end requests to prevent security vulnerabilities.
     if request.method == 'POST':
         try:
             data = json.loads(request.body)
@@ -1809,7 +1355,6 @@ def send_message(request):
     
     # Return an error if the request method is not POST
     return JsonResponse({'success': False, 'error': 'Invalid request method'}, status=405)
-
 
 @login_required
 def get_messages(request, user_id):
@@ -1844,11 +1389,11 @@ def get_messages(request, user_id):
     except Exception as e:
         return JsonResponse({'success': False, 'error': str(e)}, status=500)
     
-
 def messages_list_view(request):
     # Get all users except the current user
     user_profiles = UserProfile.objects.exclude(user=request.user)
     return render(request, 'freelancer_platform/messages_list.html', {'user_profiles': user_profiles})
+
 @login_required
 def workspace_detail(request):
     # Get the correct UserProfile instance
@@ -1858,3 +1403,128 @@ def workspace_detail(request):
     approved_jobs = Application.objects.filter(freelancer=user_profile, status='approved').select_related('job')
 
     return render(request, 'freelancer_platform/workspace_detail.html', {'approved_jobs': approved_jobs})
+
+@login_required
+def file_complaint(request, payment_id):
+    """File a complaint for a specific payment (both recruiter and freelancer)"""
+    try:
+        user_profile = UserProfile.objects.get(user=request.user)
+        payment = get_object_or_404(Payment, id=payment_id)
+        
+        # Check if user has access to this payment
+        if user_profile not in [payment.recruiter, payment.freelancer]:
+            messages.error(request, 'You do not have access to this payment.')
+            return redirect('dashboard')
+        
+        # Check if complaint already exists
+        existing_complaint = Complaint.objects.filter(payment=payment, complainant=user_profile).first()
+        if existing_complaint:
+            messages.warning(request, 'You have already filed a complaint for this payment.')
+            return redirect('complaint_detail', complaint_id=existing_complaint.id)
+        
+        if request.method == 'POST':
+            form = ComplaintForm(request.POST, request.FILES, user_type=user_profile.user_type)
+            if form.is_valid():
+                complaint = form.save(commit=False)
+                complaint.payment = payment
+                complaint.complainant = user_profile
+                complaint.save()
+                
+                # Update payment status to disputed
+                payment.status = 'disputed'
+                payment.save()
+                
+                messages.success(request, 'Complaint filed successfully! Admin will review it soon.')
+                return redirect('complaint_detail', complaint_id=complaint.id)
+        else:
+            form = ComplaintForm(user_type=user_profile.user_type)
+        
+        # Fetch user's complaints for side panel
+        my_complaints = Complaint.objects.filter(complainant=user_profile).order_by('-created_at')[:10]
+        context = {
+            'form': form,
+            'payment': payment,
+            'user_profile': user_profile,
+            'my_complaints': my_complaints,
+        }
+        return render(request, 'freelancer_platform/file_complaint.html', context)
+    
+    except UserProfile.DoesNotExist:
+        messages.error(request, 'User profile not found.')
+        return redirect('home')
+
+@login_required
+def complaint_detail(request, complaint_id):
+    """View complaint details"""
+    complaint = get_object_or_404(Complaint, id=complaint_id)
+    user_profile = UserProfile.objects.get(user=request.user)
+    
+    # Check if user has access to this complaint
+    if user_profile not in [complaint.complainant, complaint.payment.recruiter, complaint.payment.freelancer]:
+        messages.error(request, 'You do not have access to this complaint.')
+        return redirect('dashboard')
+    
+    context = {
+        'complaint': complaint,
+        'user_profile': user_profile,
+    }
+    return render(request, 'freelancer_platform/complaint_detail.html', context)
+
+@login_required
+def my_complaints(request):
+    """View user's complaints"""
+    try:
+        user_profile = UserProfile.objects.get(user=request.user)
+        complaints = Complaint.objects.filter(complainant=user_profile).order_by('-created_at')
+        
+        context = {
+            'complaints': complaints,
+            'user_profile': user_profile,
+        }
+        return render(request, 'freelancer_platform/my_complaints.html', context)
+    
+    except UserProfile.DoesNotExist:
+        messages.error(request, 'User profile not found.')
+        return redirect('home')
+
+@login_required
+def admin_complaints(request):
+    """Admin view for managing complaints"""
+    if not request.user.is_staff:
+        messages.error(request, 'Access denied. Admin privileges required.')
+        return redirect('dashboard')
+    
+    complaints = Complaint.objects.filter(status__in=['open', 'under_review']).order_by('-created_at')
+    
+    context = {
+        'complaints': complaints,
+    }
+    return render(request, 'freelancer_platform/admin_complaints.html', context)
+
+@login_required
+def resolve_complaint(request, complaint_id):
+    """Resolve complaint (admin only)"""
+    if not request.user.is_staff:
+        messages.error(request, 'Access denied. Admin privileges required.')
+        return redirect('dashboard')
+    
+    complaint = get_object_or_404(Complaint, id=complaint_id)
+    
+    if request.method == 'POST':
+        form = AdminComplaintResolutionForm(request.POST)
+        if form.is_valid():
+            resolution_type = form.cleaned_data['resolution_type']
+            admin_notes = form.cleaned_data['admin_notes']
+            resolution_amount = form.cleaned_data['resolution_amount']
+            
+            complaint.resolve_complaint(request.user, resolution_type, admin_notes, resolution_amount)
+            messages.success(request, 'Complaint resolved successfully!')
+            return redirect('admin_complaints')
+    else:
+        form = AdminComplaintResolutionForm()
+    
+    context = {
+        'form': form,
+        'complaint': complaint,
+    }
+    return render(request, 'freelancer_platform/resolve_complaint.html', context)
