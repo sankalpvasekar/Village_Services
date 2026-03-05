@@ -3,18 +3,18 @@
 {% block title %}Applications for {{ job.title }} - Local Free-Lancer{% endblock %}
 
 {% block content %}
-<div class="max-w-4xl mx-auto">
+<div class="max-w-4xl mx-auto text-blue-100">
     <!-- Job Header -->
-    <div class="bg-white rounded-lg shadow mb-6">
-        <div class="px-6 py-4 border-b border-gray-200">
+    <div class="bg-blue-900/80 backdrop-blur-md rounded-2xl shadow-2xl border border-blue-700 mb-6">
+        <div class="px-6 py-4 border-b-2 border-blue-700">
             <div class="flex items-center justify-between">
                 <div>
-                    <h1 class="text-2xl font-bold text-gray-900">Applications for {{ job.title }}</h1>
-                    <p class="text-gray-600 mt-1">{{ applications.count }} application{{ applications.count|pluralize }}</p>
+                    <h1 class="text-2xl font-bold text-blue-300">Applications for {{ job.title }}</h1>
+                    <p class="text-blue-200 mt-1">{{ applications.count }} application{{ applications.count|pluralize }}</p>
                 </div>
                 <div>
                     <a href="{% url 'job_detail' job.id %}" 
-                       class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-colors">
+                       class="inline-flex items-center px-4 py-2 border border-slate-600 text-sm font-medium rounded-md text-slate-200 bg-slate-800 hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors">
                         <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
                         </svg>
@@ -23,102 +23,67 @@
                 </div>
             </div>
         </div>
-        
-        <div class="px-6 py-4">
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-                <div>
-                    <span class="font-medium text-gray-500">Category:</span>
-                    <span class="ml-2">{{ job.get_category_display }}</span>
-                </div>
-                {% if job.salary_min and job.salary_max %}
-                <div>
-                    <span class="font-medium text-gray-500">Budget:</span>
-                    <span class="ml-2">₹{{ job.salary_min }} - ₹{{ job.salary_max }}</span>
-                </div>
-                {% endif %}
-                <div>
-                    <span class="font-medium text-gray-500">Status:</span>
-                    <span class="ml-2">{{ job.get_status_display }}</span>
-                </div>
-            </div>
-        </div>
     </div>
 
     <!-- Applications List -->
-    <div class="bg-white rounded-lg shadow">
-        <div class="px-6 py-4 border-b border-gray-200">
-            <h2 class="text-lg font-semibold text-gray-900">All Applications</h2>
+    <div class="bg-blue-900/80 backdrop-blur-md rounded-2xl shadow-2xl border border-blue-700">
+        <div class="px-6 py-4 border-b-2 border-blue-700">
+            <h2 class="text-lg font-semibold text-blue-200">All Applications</h2>
         </div>
         
         {% if applications %}
-            <div class="divide-y divide-gray-200">
+            <div class="divide-y divide-blue-800/60">
                 {% for application in applications %}
-                <div class="px-6 py-6 hover:bg-gray-50">
+                <div class="px-6 py-6 hover:bg-blue-900/20 transition-colors">
                     <div class="flex items-start justify-between">
                         <div class="flex-1">
                             <div class="flex items-center justify-between mb-2">
-                                <h3 class="text-lg font-medium text-gray-900">
+                                <h3 class="text-lg font-medium text-blue-100">
                                     {{ application.freelancer.user.get_full_name|default:application.freelancer.user.username }}
                                 </h3>
                                 <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium 
-                                    {% if application.status == 'accepted' %}bg-green-100 text-green-800
-                                    {% elif application.status == 'rejected' %}bg-red-100 text-red-800
-                                    {% elif application.status == 'withdrawn' %}bg-gray-100 text-gray-800
-                                    {% else %}bg-yellow-100 text-yellow-800{% endif %}">
+                                    {% if application.status == 'accepted' %}bg-green-700 text-green-100
+                                    {% elif application.status == 'rejected' %}bg-red-700 text-red-100
+                                    {% elif application.status == 'withdrawn' %}bg-slate-700 text-slate-200
+                                    {% else %}bg-yellow-700 text-yellow-100{% endif %}">
                                     {{ application.get_status_display }}
                                 </span>
                             </div>
                             
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4 text-sm">
                                 <div>
-                                    <span class="font-medium text-gray-500">Proposed Rate:</span>
-                                    <span class="ml-2 text-gray-900">₹{{ application.proposed_rate }}/hr</span>
+                                    <span class="font-medium text-slate-400">Proposed Rate:</span>
+                                    <span class="ml-2 text-slate-200">₹{{ application.proposed_rate }}/hr</span>
                                 </div>
                                 <div>
-                                    <span class="font-medium text-gray-500">Applied:</span>
-                                    <span class="ml-2 text-gray-900">{{ application.applied_at|date:"F j, Y" }}</span>
+                                    <span class="font-medium text-slate-400">Applied:</span>
+                                    <span class="ml-2 text-slate-200">{{ application.applied_at|date:"F j, Y" }}</span>
                                 </div>
                                 {% if application.freelancer.experience_years %}
                                 <div>
-                                    <span class="font-medium text-gray-500">Experience:</span>
-                                    <span class="ml-2 text-gray-900">{{ application.freelancer.experience_years }} years</span>
+                                    <span class="font-medium text-slate-400">Experience:</span>
+                                    <span class="ml-2 text-slate-200">{{ application.freelancer.experience_years }} years</span>
                                 </div>
-                                {% endif %}
-                                {% if application.freelancer.skills %}
-                                <div>
-                                    <span class="font-medium text-gray-500">Skills:</span>
-                                    <span class="ml-2 text-gray-900">{{ application.freelancer.skills|truncatewords:10 }}</span>
-                                </div>
-                                {% endif %}
                             </div>
                             
-                            {% if application.cover_letter %}
-                            <div class="bg-gray-50 rounded-lg p-4">
-                                <h4 class="font-medium text-gray-900 mb-2">Cover Letter</h4>
-                                <p class="text-gray-700 text-sm whitespace-pre-line">{{ application.cover_letter }}</p>
-                            </div>
-                            {% endif %}
-                        </div>
-                    </div>
-                    
-                    <div class="mt-4 flex flex-col sm:flex-row gap-2">
-                        {% if application.status == 'pending' %}
-                            <button class="inline-flex items-center px-3 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors">
-                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                                </svg>
-                                Accept
-                            </button>
-                            <button class="inline-flex items-center px-3 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors">
-                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                                </svg>
-                                Reject
-                            </button>
-                        {% endif %}
-                        
-                        <a href="mailto:{{ application.freelancer.user.email }}" 
-                           class="inline-flex items-center px-3 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-colors">
+                            <div class="mt-4 flex flex-col sm:flex-row gap-2">
+                                {% if application.status == 'pending' %}
+                                    <button class="inline-flex items-center px-3 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors">
+                                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                        </svg>
+                                        Accept
+                                    </button>
+                                    <button class="inline-flex items-center px-3 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors">
+                                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                        </svg>
+                                        Reject
+                                    </button>
+                                {% endif %}
+
+                        <a href="mailto:{{ application.freelancer.user.email }}"
+                           class="inline-flex items-center px-3 py-2 border border-slate-600 text-sm font-medium rounded-md text-slate-200 bg-slate-800 hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors">
                             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
                             </svg>
@@ -130,13 +95,94 @@
             </div>
         {% else %}
             <div class="px-6 py-8 text-center">
-                <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="mx-auto h-12 w-12 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                 </svg>
-                <h3 class="mt-2 text-sm font-medium text-gray-900">No applications yet</h3>
-                <p class="mt-1 text-sm text-gray-500">Applications will appear here once freelancers start applying to this job.</p>
+                <h3 class="mt-2 text-sm font-medium text-blue-200">No applications yet</h3>
+                <p class="mt-1 text-sm text-blue-300">Applications will appear here once freelancers start applying to this job.</p>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Job Requests List for this Job -->
+    <div class="bg-blue-900/80 backdrop-blur-md rounded-2xl shadow-2xl border border-blue-700 mt-8">
+        <div class="px-6 py-4 border-b-2 border-blue-700">
+            <h2 class="text-lg font-semibold text-blue-200">Job Requests</h2>
+        </div>
+        {% if job_requests %}
+            <div class="divide-y divide-blue-800/60">
+                {% for request in job_requests %}
+                <div class="px-6 py-6 hover:bg-blue-900/20 transition-colors">
+                    <div class="flex items-start justify-between">
+                        <div class="flex-1">
+                            <div class="flex items-center justify-between mb-2">
+                                <h3 class="text-lg font-medium text-blue-100">
+                                    {{ request.freelancer.user.get_full_name|default:request.freelancer.user.username }}
+                                </h3>
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium 
+                                    {% if request.status == 'approved' %}bg-green-700 text-green-100
+                                    {% elif request.status == 'rejected' %}bg-red-700 text-red-100
+                                    {% else %}bg-yellow-700 text-yellow-100{% endif %}">
+                                    {{ request.get_status_display }}
+                                </span>
+                            </div>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4 text-sm">
+                                <div>
+                                    <span class="font-medium text-slate-400">Proposal:</span>
+                                    <span class="ml-2 text-slate-200">
+                                        {% if request.proposal_type == 'monthly' and request.proposed_rate and request.proposed_duration %}
+                                            ₹{{ request.proposed_rate }}/month for {{ request.proposed_duration }} months
+                                        {% elif request.proposal_type == 'daily' and request.proposed_rate and request.proposed_duration %}
+                                            ₹{{ request.proposed_rate }}/day for {{ request.proposed_duration }} days
+                                        {% elif request.proposal_type == 'hourly' and request.proposed_rate and request.proposed_duration %}
+                                            ₹{{ request.proposed_rate }}/hour for {{ request.proposed_duration }} hours
+                                        {% elif request.proposed_rate %}
+                                            ₹{{ request.proposed_rate }}
+                                        {% else %}
+                                            Not provided
+                                        {% endif %}
+                                    </span>
+                                </div>
+                                <div>
+                                    <span class="font-medium text-slate-400">Requested:</span>
+                                    <span class="ml-2 text-slate-200">{{ request.created_at|timesince }} ago</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="ml-4 flex gap-2">
+                            {% if request.status == 'pending' and job.status == 'open' %}
+                                <a href="{% url 'approve_job_request' request.id %}"
+                                   class="inline-flex items-center px-3 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors"
+                                   onclick="return confirm('Approve this request and assign the job to this freelancer?')">
+                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                    </svg>
+                                    Approve
+                                </a>
+                                <a href="{% url 'reject_job_request' request.id %}"
+                                   class="inline-flex items-center px-3 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors"
+                                   onclick="return confirm('Reject this request?')">
+                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                    </svg>
+                                    Reject
+                                </a>
+                            {% elif request.status == 'approved' %}
+                                <a href="{% url 'initiate_payment' request.id %}"
+                                   class="inline-flex items-center px-3 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors">
+                                    Initiate Payment
+                                </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="px-6 py-8 text-center">
+                <p class="text-sm text-blue-300">No job requests yet for this job.</p>
             </div>
         {% endif %}
     </div>
 </div>
-{% endblock %} 
+{% endblock %}

@@ -5,7 +5,7 @@
 
 {% block content %}
 <div class="max-w-3xl mx-auto px-4 py-10">
-    <h1 class="text-3xl font-bold text-gray-900 mb-6">💼 Messages</h1>
+    <h1 class="text-3xl font-bold text-white-900 mb-6">💼 Messages</h1>
 
     <div class="mb-6">
         <input id="userSearch" type="text" placeholder="Search by name or username" class="w-full bg-white text-black placeholder-black border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" oninput="filterUsers()">
@@ -13,21 +13,23 @@
 
     <div id="userList" class="space-y-5">
         {% for profile in user_profiles %}
-            <div class="flex items-center justify-between bg-white border border-gray-200 rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow duration-300" data-name="{{ profile.user.get_full_name|default:profile.user.username|lower }}">
+            {% with name=profile.user.get_full_name|default:profile.user.username %}
+            {% if not name %}{% with name=profile.phone %}{% endwith %}{% endif %}
+            <div class="flex items-center justify-between gap-4 bg-white border border-gray-200 rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow duration-300" data-name="{{ name|default:'User'|lower }}">
                 <div class="flex items-center space-x-4">
                     <div class="bg-blue-600 text-white rounded-full w-10 h-10 flex items-center justify-center text-lg font-semibold">
                         {{ profile.user.username|slice:":1"|upper }}
                     </div>
 
                     <div>
-                        <h2 class="text-lg font-medium text-gray-800">{{ profile.user.get_full_name|default:profile.user.username }}</h2>
+                        <h2 class="text-lg font-medium text-gray-800">{{ name|default:profile.phone|default:'User' }}</h2>
                         <p class="text-gray-500 text-sm">📱 {{ profile.phone|default:"N/A" }}</p>
                     </div>
                 </div>
 
                 {% if profile.phone %}
                 <a href="https://wa.me/{{ profile.phone|whatsapp_number }}" target="_blank"
-                   class="flex items-center space-x-2 bg-gradient-to-r from-green-400 to-green-600 hover:from-green-500 hover:to-green-700 text-white font-medium px-3 py-2 rounded-lg transition-colors duration-200">
+                   class="flex items-center space-x-2 ml-2 bg-gradient-to-r from-green-400 to-green-600 hover:from-green-500 hover:to-green-700 text-white font-medium px-3 py-2 rounded-lg transition-colors duration-200">
                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                        <path d="M20.52 3.48a11.94 11.94 0 00-16.9 0c-4.66 4.66-4.66 12.24 0 16.9a11.94 11.94 0 0016.9 0c4.66-4.66 4.66-12.24 0-16.9zM12 21.35a9.35 9.35 0 01-5.01-1.46l-3.68 1 1-3.68A9.35 9.35 0 012.65 12 9.35 9.35 0 1112 21.35zm5.23-6.2c-.29.82-1.68 1.55-2.32 1.64-.6.08-1.38.12-2.23-.14-.52-.17-1.2-.39-2.07-.86-3.63-1.95-5.98-5.2-6.17-5.44-.18-.24-1.47-1.96-1.47-3.75 0-1.79.92-2.66 1.25-3 .33-.34.73-.43.98-.43.24 0 .49 0 .71.01.23.01.53-.08.83.63.29.71.99 2.46 1.08 2.64.09.18.15.39.03.63-.12.24-.18.39-.36.6-.18.21-.38.47-.54.63-.18.18-.36.38-.15.75.21.36.94 1.54 2.02 2.5 1.39 1.21 2.56 1.59 2.93 1.77.37.18.59.16.8-.09.21-.24.92-1.07 1.17-1.44.24-.37.49-.3.83-.18.34.12 2.15 1.02 2.52 1.2.37.18.62.27.71.42.09.15.09.88-.2 1.7z"/>
                    </svg>
@@ -37,6 +39,7 @@
                 <span class="text-gray-400 text-sm">No phone</span>
                 {% endif %}
             </div>
+            {% endwith %}
         {% endfor %}
     </div>
 </div>

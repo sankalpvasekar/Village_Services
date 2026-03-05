@@ -1,0 +1,161 @@
+{% extends 'freelancer_platform/base.html' %}
+
+{% block title %}My Applications - Local Free-Lancer{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-slate-900 py-8">
+  <div class="container mx-auto px-4">
+    <div class="max-w-6xl mx-auto">
+      <div class="mb-8">
+        <h1 class="text-3xl font-bold text-white mb-2">My Applications</h1>
+        <p class="text-slate-400">Review and track the jobs you applied to</p>
+      </div>
+
+      {% if applications %}
+      <div class="space-y-6">
+        {% for app in applications %}
+        <div
+          class="border border-violet-700 rounded-lg p-6 hover:shadow-lg hover:border-violet-500 transition duration-200 bg-violet-900/30">
+          <div class="flex justify-between items-start mb-4">
+            <div class="flex-1">
+              <h3 class="text-xl font-semibold text-violet-100 mb-2">{{ app.job.title }}</h3>
+              <div class="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-slate-300 mb-3">
+                <span class="flex items-center">
+                  <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd"
+                      d="M4 4a2 2 0 00-2 2v4a2 2 0 002 2V6h10a2 2 0 00-2-2H4zm2 6a2 2 0 012-2h8a2 2 0 012 2v4a2 2 0 01-2 2H8a2 2 0 01-2-2v-4zm6 4a2 2 0 100-4 2 2 0 000 4z"
+                      clip-rule="evenodd"></path>
+                  </svg>
+                  {% if app.job.salary_min and app.job.salary_max %}
+                  ₹{{ app.job.salary_min }} - ₹{{ app.job.salary_max }}
+                  {% elif app.job.salary_min %}
+                  ₹{{ app.job.salary_min }}
+                  {% elif app.job.salary_max %}
+                  ₹{{ app.job.salary_max }}
+                  {% else %}
+                  ₹ —
+                  {% endif %}
+                </span>
+                <span class="flex items-center">
+                  <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd"
+                      d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z"
+                      clip-rule="evenodd"></path>
+                  </svg>
+                  {{ app.job.location|default:'Remote/On-site' }}
+                </span>
+                <span class="flex items-center">
+                  <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd"
+                      d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z"
+                      clip-rule="evenodd"></path>
+                  </svg>
+                  {{ app.applied_at|timesince }} ago
+                </span>
+              </div>
+
+              {% if app.cover_letter %}
+              <div class="mb-4">
+                <h4 class="text-sm font-medium text-violet-200 mb-2">Your Cover Letter</h4>
+                <p class="text-slate-300">{{ app.cover_letter|truncatewords:40 }}</p>
+              </div>
+              {% endif %}
+
+              <div class="mb-2">
+                <span class="text-sm text-slate-300">Recruiter: {{
+                  app.job.recruiter.user.get_full_name|default:app.job.recruiter.user.username }}</span>
+              </div>
+            </div>
+
+            <div class="flex items-center gap-2">
+              <a href="{% url 'job_detail' app.job.id %}"
+                class="bg-cyan-600 hover:bg-cyan-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition duration-200">View
+                Job</a>
+              <a href="{% url 'request_job' app.job.id %}"
+                class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition duration-200">Request
+                Job</a>
+            </div>
+          </div>
+
+          <div class="flex flex-wrap items-center gap-3 text-sm">
+            <span class="px-2 py-1 rounded bg-slate-700/50 border border-slate-600 text-slate-200">Status: {{
+              app.status|title }}</span>
+            {% if app.proposed_rate %}
+            <span class="px-2 py-1 rounded bg-slate-700/50 border border-slate-600 text-slate-200">Proposed: ₹{{
+              app.proposed_rate }}</span>
+            {% endif %}
+            {% if app.proposed_duration %}
+            <span class="px-2 py-1 rounded bg-slate-700/50 border border-slate-600 text-slate-200">Duration: {{
+              app.proposed_duration }}</span>
+            {% endif %}
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+
+
+      {% endif %}
+    </div>
+
+    <!-- Your Job Requests and their status -->
+    <div class="bg-violet-900/40 rounded-lg shadow-md p-6 border border-violet-700 mt-8">
+      <h2 class="text-2xl font-bold text-white mb-4">My Job Requests</h2>
+      {% if job_requests %}
+      <div class="space-y-6">
+        {% for jr in job_requests %}
+        <div
+          class="border border-violet-700 rounded-lg p-6 hover:shadow-lg hover:border-violet-500 transition duration-200 bg-violet-900/30">
+          <div class="flex justify-between items-start mb-4">
+            <div class="flex-1">
+              <h3 class="text-xl font-semibold text-violet-100 mb-2">{{ jr.job.title }}</h3>
+              <div class="flex flex-wrap items-center gap-3 text-sm">
+                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                      {% if jr.status == 'approved' %} bg-green-700 text-green-100
+                      {% elif jr.status == 'rejected' %} bg-red-700 text-red-100
+                      {% else %} bg-yellow-700 text-yellow-100 {% endif %}">
+                  {{ jr.get_status_display }}
+                </span>
+                {% if jr.proposal_type %}
+                <span class="px-2 py-1 rounded bg-slate-700/50 border border-slate-600 text-slate-200">Type: {{
+                  jr.get_proposal_type_display }}</span>
+                {% endif %}
+                {% if jr.proposed_rate %}
+                <span class="px-2 py-1 rounded bg-slate-700/50 border border-slate-600 text-slate-200">Proposed: ₹{{
+                  jr.proposed_rate }}</span>
+                {% endif %}
+                {% if jr.proposed_duration %}
+                <span class="px-2 py-1 rounded bg-slate-700/50 border border-slate-600 text-slate-200">Duration: {{
+                  jr.proposed_duration }}</span>
+                {% endif %}
+                <span class="px-2 py-1 rounded bg-slate-700/50 border border-slate-600 text-slate-200">Requested {{
+                  jr.created_at|timesince }} ago</span>
+              </div>
+            </div>
+            <div class="flex items-center gap-2">
+              <a href="{% url 'job_detail' jr.job.id %}"
+                class="bg-cyan-600 hover:bg-cyan-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition duration-200">View
+                Job</a>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      <div class="mt-8 text-center">
+        <p class="text-slate-400">Showing {{ job_requests|length }} job requests</p>
+      </div>
+      {% else %}
+      <div class="text-center py-12">
+        <p class="text-slate-400 mb-6">No job requests yet.</p>
+      </div>
+      {% endif %}
+
+      <div class="mt-6 text-center">
+        <a href="{% url 'dashboard' %}"
+          class="inline-block bg-cyan-600 hover:bg-cyan-700 text-white px-6 py-2 rounded-lg font-medium transition duration-200">Go
+          to Dashboard</a>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+{% endblock %}

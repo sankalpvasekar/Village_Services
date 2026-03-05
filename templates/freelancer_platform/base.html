@@ -1,5 +1,7 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -31,27 +33,96 @@
         }
     </script>
     <style>
-        /* Custom styles for the background image */
-        .main-background {
-            background-image: url('https://image.pollinations.ai/prompt/glasmorphic%20transparent%20abstract%20digital%20globe%20with%20glowing%20blue%20and%20magenta%20rings%2C%20data%20flow%2C%20subtle%20crystalline%20elements%2C%20dark%20translucent%20background%2C%20neon%20tech%2C%20futuristic%2C%20network%2C%20high%20resolution?width=1200&height=700&seed=42'); /* This is the new image URL */
-            background-size: cover;
-            background-position: center;
-            background-repeat: no-repeat;
-            background-attachment: fixed; /* Makes the background scroll independently of content */
-            position: relative;
-            z-index: 1; /* Ensure content is above background */
+        /* Base styles for the entire page body */
+        body {
+            background-color: #0F172A;
+            /* Fallback for browsers that don't support custom props or if image fails */
+            color: #CBD5E1;
+            /* Default text color */
+            min-height: 100vh;
+            display: flex;
+            /* Use flexbox for body to manage content layout */
+            flex-direction: column;
+            /* Stack children vertically */
+            overflow-x: hidden;
+            /* Prevent horizontal scroll from parallax */
         }
-        .main-background::before {
-            content: "";
-            position: absolute;
+
+        /* Full-page animated background */
+        .animated-background {
+            position: fixed;
+            /* Fixes background to the viewport */
             top: 0;
             left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: rgba(15, 23, 42, 0.5); /* slate-900 with 50% opacity as a subtle overlay */
-            backdrop-filter: blur(2px); /* Subtle blur to the background behind */
-            z-index: -1; /* Place overlay behind content but above background image */
+            width: 100%;
+            height: 100%;
+            background-image: url("{% static 'images/earth.png' %}");
+            /* YOUR LOCAL IMAGE */
+            background-size: 110%;
+            /* Start slightly zoomed for animation */
+            background-position: center center;
+            background-repeat: no-repeat;
+            z-index: -2;
+            /* Ensure it's behind everything else */
+            animation: backgroundPanZoom 60s infinite alternate;
+            /* More dynamic animation */
+            will-change: transform, background-position, background-size;
+            /* Optimize for smooth animation */
         }
+
+        /* Overlay for content readability - NO BLUR */
+        .content-overlay {
+            position: fixed;
+            /* Fixes overlay to the viewport */
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(15, 23, 42, 0.75);
+            /* Increased opacity to 75% for readability over sharp image */
+            z-index: -1;
+            /* Behind content, above animated background */
+        }
+
+        /* Ensure main content and footer are above the overlays */
+        .site-wrapper {
+            position: relative;
+            z-index: 1;
+            /* Puts all main content above overlays */
+            flex-grow: 1;
+            /* Allows it to take available space */
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* More dynamic background animation */
+        @keyframes backgroundPanZoom {
+            0% {
+                background-size: 110%;
+                background-position: 50% 50%;
+            }
+
+            25% {
+                background-size: 105%;
+                background-position: 45% 55%;
+            }
+
+            50% {
+                background-size: 115%;
+                background-position: 55% 45%;
+            }
+
+            75% {
+                background-size: 108%;
+                background-position: 48% 52%;
+            }
+
+            100% {
+                background-size: 110%;
+                background-position: 50% 50%;
+            }
+        }
+
         /* Typing effect */
         .typing-text {
             display: inline-block;
@@ -63,152 +134,241 @@
 
         /* Adjust steps() to match the number of characters, including spaces */
         @keyframes typing {
-            from { width: 0; }
-            to { width: 100%; }
+            from {
+                width: 0;
+            }
+
+            to {
+                width: 100%;
+            }
         }
 
         @keyframes blink {
-            50% { border-color: transparent; }
+            50% {
+                border-color: transparent;
+            }
+        }
+
+        /* Custom scrollbar for recommendations modal */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: rgba(45, 55, 72, 0.5);
+            /* dark blue-gray for track */
+            border-radius: 10px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: rgba(59, 130, 246, 0.7);
+            /* blue-500 for thumb */
+            border-radius: 10px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: rgba(37, 99, 235, 0.9);
+            /* blue-600 on hover */
         }
     </style>
 </head>
-<body class="bg-slate-900 text-slate-300 min-h-screen">
-    <nav class="bg-slate-800 shadow-lg border-b border-slate-700 sticky top-0 z-50">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between h-16">
-                <div class="flex items-center">
-                    <a href="{% url 'home' %}" class="flex-shrink-0 flex items-center">
-                        <div class="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-                            <span class="text-slate-900 font-bold text-lg">L</span>
-                        </div>
-                        <span class="ml-2 text-xl font-bold text-white" data-translate="brand">Local Free-Lancer</span>
-                    </a>
-                </div>
 
-                <div class="hidden md:flex items-center space-x-4">
-                    <a href="{% url 'home' %}" class="text-slate-300 hover:text-primary px-3 py-2 rounded-md text-sm font-medium transition-colors" data-translate="nav_home">
-                        Home
-                    </a>
-                    
-                    {% if user.is_authenticated %}
-                        <a href="{% url 'dashboard' %}" class="text-slate-300 hover:text-primary px-3 py-2 rounded-md text-sm font-medium transition-colors" data-translate="nav_dashboard">
+<body>
+    <div class="animated-background" id="animatedBackground"></div>
+    <div class="content-overlay"></div>
+
+    <div class="site-wrapper">
+        <nav class="bg-slate-800/85 shadow-lg border-b border-slate-700 sticky top-0 z-50">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex justify-between h-16">
+                    <div class="flex items-center">
+                        <a href="{% url 'home' %}" class="flex-shrink-0 flex items-center">
+                            <img src="{% static 'images/LOGO (2).png' %}" alt="Village Services Logo"
+                                class="h-13 w-11 object-contain rounded-lg">
+                            <span class="ml-2 text-xl font-bold text-white" data-translate="brand">Village
+                                Services</span>
+                        </a>
+                    </div>
+
+                    <div class="hidden md:flex items-center space-x-4">
+                        <a href="{% url 'home' %}"
+                            class="text-slate-300 hover:text-primary px-3 py-2 rounded-md text-sm font-medium transition-colors"
+                            data-translate="nav_home">
+                            Home
+                        </a>
+
+                        {% if user.is_authenticated %}
+                        <a href="{% url 'dashboard' %}"
+                            class="text-slate-300 hover:text-primary px-3 py-2 rounded-md text-sm font-medium transition-colors"
+                            data-translate="nav_dashboard">
                             Dashboard
                         </a>
                         {% if user.userprofile.user_type == 'recruiter' %}
-                            <a href="{% url 'post_job' %}" class="text-slate-300 hover:text-primary px-3 py-2 rounded-md text-sm font-medium transition-colors" data-translate="nav_post_job">
-                                Post Job
-                            </a>
+                        <a href="{% url 'post_job' %}"
+                            class="text-slate-300 hover:text-primary px-3 py-2 rounded-md text-sm font-medium transition-colors"
+                            data-translate="nav_post_job">
+                            Post Job
+                        </a>
                         {% elif user.userprofile.user_type == 'freelancer' %}
-                            <a href="{% url 'freelancer_profile' %}" class="text-slate-300 hover:text-primary px-3 py-2 rounded-md text-sm font-medium transition-colors" data-translate="nav_my_profile">
-                                My Profile
-                            </a>
+                        <a href="{% url 'freelancer_profile' %}"
+                            class="text-slate-300 hover:text-primary px-3 py-2 rounded-md text-sm font-medium transition-colors"
+                            data-translate="nav_my_profile">
+                            My Profile
+                        </a>
                         {% endif %}
-                        <a href="{% url 'messages_list' %}" class="text-slate-300 hover:text-primary px-3 py-2 rounded-md text-sm font-medium transition-colors">
+                        <a href="{% url 'messages_list' %}"
+                            class="text-slate-300 hover:text-primary px-3 py-2 rounded-md text-sm font-medium transition-colors">
                             Messages
                         </a>
                         <div class="flex items-center space-x-4">
                             <span class="text-sm text-slate-400">Welcome, {{ user.username }}</span>
 
-                            <a href="{% url 'logout' %}" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors" data-translate="nav_logout">
+                            <a href="{% url 'logout' %}"
+                                class="bg-red-500 border-2 border-red-500 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors hover:bg-transparent hover:text-red-400"
+                                data-translate="nav_logout">
                                 Logout
                             </a>
                         </div>
-                    {% else %}
+                        {% else %}
                         <div class="relative" id="loginDropdownContainer">
-                            <button id="loginDropdownButton" class="text-slate-300 hover:text-primary px-3 py-2 rounded-md text-sm font-medium transition-colors flex items-center">
+                            <button id="loginDropdownButton"
+                                class="text-slate-300 hover:text-primary px-3 py-2 rounded-md text-sm font-medium transition-colors flex items-center">
                                 <span data-translate="nav_login">Login</span>
-                                <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                                <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M19 9l-7 7-7-7"></path>
+                                </svg>
                             </button>
-                            <div id="loginDropdownMenu" class="hidden absolute right-0 mt-2 w-48 bg-slate-700 rounded-md shadow-lg py-1 z-50 border border-slate-600">
-                                <a href="{% url 'login' %}?user_type=freelancer" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-600 hover:text-white">Login as Freelancer</a>
-                                <a href="{% url 'login' %}?user_type=recruiter" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-600 hover:text-white">Login as Recruiter</a>
+                            <div id="loginDropdownMenu"
+                                class="hidden absolute right-0 mt-2 w-48 bg-slate-700 rounded-md shadow-lg py-1 z-50 border border-slate-600">
+                                <a href="{% url 'login' %}?user_type=freelancer"
+                                    class="block px-4 py-2 text-sm text-slate-300 hover:bg-transparent hover:text-primary">Login
+                                    as Freelancer</a>
+                                <a href="{% url 'login' %}?user_type=recruiter"
+                                    class="block px-4 py-2 text-sm text-slate-300 hover:bg-transparent hover:text-primary">Login
+                                    as Recruiter</a>
                             </div>
                         </div>
 
-                        <a href="{% url 'register' %}" class="bg-primary hover:bg-secondary text-slate-900 px-4 py-2 rounded-md text-sm font-medium transition-colors" data-translate="nav_register">
+                        <a href="{% url 'register' %}"
+                            class="bg-primary border-2 border-primary text-slate-900 px-4 py-2 rounded-md text-sm font-medium transition-colors hover:bg-transparent hover:text-primary"
+                            data-translate="nav_register">
                             Register
                         </a>
-                    {% endif %}
+                        {% endif %}
+                    </div>
+
+                    <div class="md:hidden flex items-center">
+                        <button id="mobileMenuButton" class="text-slate-300 hover:text-primary focus:outline-none">
+                            <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M4 6h16M4 12h16M4 18h16"></path>
+                            </svg>
+                        </button>
+                    </div>
                 </div>
 
-                <div class="md:hidden flex items-center">
-                    <button id="mobileMenuButton" class="text-slate-300 hover:text-primary focus:outline-none">
-                        <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                <div id="mobileMenu" class="md:hidden hidden bg-slate-800">
+                    <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3">
+                        <a href="{% url 'home' %}"
+                            class="text-slate-300 hover:text-primary block px-3 py-2 rounded-md text-base font-medium"
+                            data-translate="nav_home">Home</a>
+
+                        {% if user.is_authenticated %}
+                        <a href="{% url 'dashboard' %}"
+                            class="text-slate-300 hover:text-primary block px-3 py-2 rounded-md text-base font-medium"
+                            data-translate="nav_dashboard">Dashboard</a>
+                        {% if user.userprofile.user_type == 'recruiter' %}
+                        <a href="{% url 'post_job' %}"
+                            class="text-slate-300 hover:text-primary block px-3 py-2 rounded-md text-base font-medium"
+                            data-translate="nav_post_job">Post Job</a>
+                        {% elif user.userprofile.user_type == 'freelancer' %}
+                        <a href="{% url 'freelancer_profile' %}"
+                            class="text-slate-300 hover:text-primary block px-3 py-2 rounded-md text-base font-medium"
+                            data-translate="nav_my_profile">My Profile</a>
+                        {% endif %}
+
+                        <div class="border-t border-slate-700 pt-4 mt-2">
+                            <span class="text-sm text-slate-400 block px-3 py-2" data-translate="welcome">Welcome, {{
+                                user.username }}</span>
+                            <a href="{% url 'logout' %}"
+                                class="text-red-400 hover:text-red-300 block px-3 py-2 rounded-md text-base font-medium"
+                                data-translate="nav_logout">Logout</a>
+                        </div>
+                        {% else %}
+                        <a href="{% url 'login' %}?user_type=freelancer"
+                            class="text-slate-300 hover:text-primary block px-3 py-2 rounded-md text-base font-medium">Login
+                            as Freelancer</a>
+                        <a href="{% url 'login' %}?user_type=recruiter"
+                            class="text-slate-300 hover:text-primary block px-3 py-2 rounded-md text-base font-medium">Login
+                            as Recruiter</a>
+                        <a href="{% url 'register' %}"
+                            class="text-slate-300 hover:text-primary block px-3 py-2 rounded-md text-base font-medium"
+                            data-translate="nav_register">Register</a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <main class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8 flex-grow">
+            {% if messages %}
+            <div class="mb-6 space-y-3">
+                {% for message in messages %}
+                <div class="{% if message.tags == 'error' %}bg-red-500/10 border-red-500/30 text-red-300{% elif message.tags == 'success' %}bg-green-500/10 border-green-500/30 text-green-300{% elif message.tags == 'warning' %}bg-yellow-500/10 border-yellow-500/30 text-yellow-300{% else %}bg-cyan-500/10 border-cyan-500/30 text-cyan-300{% endif %} border px-4 py-3 rounded-lg relative"
+                    role="alert">
+                    <span class="block sm:inline">{{ message }}</span>
+                    <button type="button" class="absolute top-0 bottom-0 right-0 px-4 py-3"
+                        onclick="this.parentElement.remove()">
+                        <svg class="fill-current h-6 w-6" role="button" xmlns="http://www.w3.org/2000/svg"
+                            viewBox="0 0 20 20">
+                            <path
+                                d="M14.348 14.849a1.2 1.2 0 0 1-1.697 0L10 11.819l-2.651 3.029a1.2 1.2 0 1 1-1.697-1.697l2.758-3.15-2.759-3.152a1.2 1.2 0 1 1 1.697-1.697L10 8.183l2.651-3.031a1.2 1.2 0 1 1 1.697 1.697l-2.758 3.152 2.758 3.15a1.2 1.2 0 0 1 0 1.698z" />
                         </svg>
                     </button>
                 </div>
-            </div>
-
-            <div id="mobileMenu" class="md:hidden hidden bg-slate-800">
-                <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3">
-                    <a href="{% url 'home' %}" class="text-slate-300 hover:text-primary block px-3 py-2 rounded-md text-base font-medium" data-translate="nav_home">Home</a>
-                    
-                    {% if user.is_authenticated %}
-                        <a href="{% url 'dashboard' %}" class="text-slate-300 hover:text-primary block px-3 py-2 rounded-md text-base font-medium" data-translate="nav_dashboard">Dashboard</a>
-                        {% if user.userprofile.user_type == 'recruiter' %}
-                            <a href="{% url 'post_job' %}" class="text-slate-300 hover:text-primary block px-3 py-2 rounded-md text-base font-medium" data-translate="nav_post_job">Post Job</a>
-                        {% elif user.userprofile.user_type == 'freelancer' %}
-                            <a href="{% url 'freelancer_profile' %}" class="text-slate-300 hover:text-primary block px-3 py-2 rounded-md text-base font-medium" data-translate="nav_my_profile">My Profile</a>
-                        {% endif %}
-                        
-                        <div class="border-t border-slate-700 pt-4 mt-2">
-                            <span class="text-sm text-slate-400 block px-3 py-2" data-translate="welcome">Welcome, {{ user.username }}</span>
-                            <a href="{% url 'logout' %}" class="text-red-400 hover:text-red-300 block px-3 py-2 rounded-md text-base font-medium" data-translate="nav_logout">Logout</a>
-                        </div>
-                    {% else %}
-                        <a href="{% url 'login' %}?user_type=freelancer" class="text-slate-300 hover:text-primary block px-3 py-2 rounded-md text-base font-medium">Login as Freelancer</a>
-                        <a href="{% url 'login' %}?user_type=recruiter" class="text-slate-300 hover:text-primary block px-3 py-2 rounded-md text-base font-medium">Login as Recruiter</a>
-                        <a href="{% url 'register' %}" class="text-slate-300 hover:text-primary block px-3 py-2 rounded-md text-base font-medium" data-translate="nav_register">Register</a>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-    </nav>
-
-    <main class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8 main-background min-h-[calc(100vh-16rem)]">
-        {% if messages %}
-            <div class="mb-6 space-y-3">
-                {% for message in messages %}
-                    <div class="{% if message.tags == 'error' %}bg-red-500/10 border-red-500/30 text-red-300{% elif message.tags == 'success' %}bg-green-500/10 border-green-500/30 text-green-300{% elif message.tags == 'warning' %}bg-yellow-500/10 border-yellow-500/30 text-yellow-300{% else %}bg-cyan-500/10 border-cyan-500/30 text-cyan-300{% endif %} border px-4 py-3 rounded-lg relative" role="alert">
-                        <span class="block sm:inline">{{ message }}</span>
-                        <button type="button" class="absolute top-0 bottom-0 right-0 px-4 py-3" onclick="this.parentElement.remove()">
-                            <svg class="fill-current h-6 w-6" role="button" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M14.348 14.849a1.2 1.2 0 0 1-1.697 0L10 11.819l-2.651 3.029a1.2 1.2 0 1 1-1.697-1.697l2.758-3.15-2.759-3.152a1.2 1.2 0 1 1 1.697-1.697L10 8.183l2.651-3.031a1.2 1.2 0 1 1 1.697 1.697l-2.758 3.152 2.758 3.15a1.2 1.2 0 0 1 0 1.698z"/></svg>
-                        </button>
-                    </div>
                 {% endfor %}
             </div>
-        {% endif %}
+            {% endif %}
 
-        {% block content %}
-            <h1 class="text-4xl font-bold text-white mb-4" data-translate="home_title">Welcome to Local Free-Lancer</h1>
-            <p class="text-xl text-slate-200" data-translate="home_intro">Find local jobs and freelance opportunities in your area.</p>
+            {% block content %}
+            <div class="bg-slate-900/70 p-8 rounded-lg shadow-xl text-center max-w-3xl mx-auto my-12">
+                <h1 class="text-4xl md:text-5xl font-extrabold text-white mb-4 leading-tight"
+                    data-translate="home_title">
+                    Welcome to <span class="text-primary">Village Services</span>
+                </h1>
+                <p class="text-xl md:text-2xl text-slate-200" data-translate="home_intro">
+                    Find local jobs and freelance opportunities in your area, connecting talent with opportunity.
+                </p>
+            </div>
             {% endblock %}
-    </main>
+        </main>
 
-    <footer class="bg-slate-800 text-slate-300 py-8 mt-16">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <footer class="bg-slate-800/85 text-slate-300 py-8 mt-16">
             <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
                 <div class="col-span-1 md:col-span-2">
                     <div class="flex items-center mb-4">
-                        <div class="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-                            <span class="text-slate-900 font-bold text-lg">L</span>
-                        </div>
-                        <span class="ml-2 text-xl font-bold text-white" data-translate="brand_footer">Local Free-Lancer</span>
+                        <img src="{% static 'images/LOGO (2).png' %}" alt="Village Services Logo"
+                            class="h-10 w-10 object-contain rounded-lg">
+                        <span class="ml-2 text-xl font-bold text-white" data-translate="brand_footer">Village
+                            Services</span>
                     </div>
                     <p class="text-slate-400 mb-4" data-translate="footer_desc">
-                        Empowering communities through local work opportunities. Connecting talent with opportunity to reduce poverty and build stronger communities.
+                        Empowering communities through local work opportunities. Connecting talent with opportunity to
+                        reduce poverty and build stronger communities.
                     </p>
                 </div>
-                
+
                 <div>
                     <h3 class="text-lg font-semibold text-white mb-4" data-translate="quick_links">Quick Links</h3>
                     <ul class="space-y-2">
-                        <li><a href="{% url 'home' %}" class="text-slate-300 hover:text-white transition-colors" data-translate="nav_home">Home</a></li>
-                        <li><a href="{% url 'register' %}" class="text-slate-300 hover:text-white transition-colors" data-translate="nav_register">Register</a></li>
-                        </ul>
+                        <li><a href="{% url 'home' %}" class="text-slate-300 hover:text-white transition-colors"
+                                data-translate="nav_home">Home</a></li>
+                        <li><a href="{% url 'register' %}" class="text-slate-300 hover:text-white transition-colors"
+                                data-translate="nav_register">Register</a></li>
+                    </ul>
                 </div>
-                
+
                 <div>
                     <h3 class="text-lg font-semibold text-white mb-4" data-translate="contact">Contact</h3>
                     <ul class="space-y-2 text-slate-300">
@@ -218,27 +378,39 @@
                     </ul>
                 </div>
             </div>
-            
-            <div class="border-t border-slate-700 mt-8 pt-8 text-center text-slate-400">
-                <p data-translate="footer_copyright">&copy; 2024 Local Free-Lancer. All rights reserved. Dedicated to reducing poverty through local economic empowerment.</p>
-            </div>
-        </div>
-    </footer>
 
+            <div class="border-t border-slate-700 mt-8 pt-8 text-center text-slate-400">
+                <p data-translate="footer_copyright">&copy; 2024 Local Free-Lancer. All rights reserved. Dedicated to
+                    reducing poverty through local economic empowerment.</p>
+            </div>
+    </div>
+    </footer>
+    </div>
     <script>
+        // --- MOUSE PARALLAX EFFECT FOR BACKGROUND ---
+        document.addEventListener('mousemove', function (e) {
+            const background = document.getElementById('animatedBackground');
+            const speed = 0.01; // Adjust this value for more or less intense parallax
+
+            const x = (window.innerWidth / 2 - e.clientX) * speed;
+            const y = (window.innerHeight / 2 - e.clientY) * speed;
+
+            background.style.transform = `translate(${x}px, ${y}px)`;
+        });
+
         // --- NEW SCRIPT FOR LOGIN DROPDOWN ---
         const loginDropdownButton = document.getElementById('loginDropdownButton');
         const loginDropdownMenu = document.getElementById('loginDropdownMenu');
         const loginDropdownContainer = document.getElementById('loginDropdownContainer');
 
         if (loginDropdownButton) {
-            loginDropdownButton.addEventListener('click', function(event) {
+            loginDropdownButton.addEventListener('click', function (event) {
                 event.stopPropagation();
                 loginDropdownMenu.classList.toggle('hidden');
             });
         }
         // Close dropdown if clicking outside
-        document.addEventListener('click', function(event) {
+        document.addEventListener('click', function (event) {
             if (loginDropdownContainer && !loginDropdownContainer.contains(event.target)) {
                 loginDropdownMenu.classList.add('hidden');
             }
@@ -247,77 +419,13 @@
         // --- EXISTING SCRIPTS ---
 
         // Mobile menu toggle
-        document.getElementById('mobileMenuButton').addEventListener('click', function() {
+        document.getElementById('mobileMenuButton').addEventListener('click', function () {
             const mobileMenu = document.getElementById('mobileMenu');
             mobileMenu.classList.toggle('hidden');
         });
 
         // Global translations object
-        const translations = {
-            en: {
-                brand: "Local Free-Lancer",
-                brand_footer: "Local Free-Lancer",
-                nav_home: "Home",
-                nav_dashboard: "Dashboard",
-                nav_post_job: "Post Job",
-                nav_my_profile: "My Profile",
-                nav_login: "Login",
-                nav_register: "Register",
-                nav_logout: "Logout",
-                welcome: "Welcome",
-                home_title: "Welcome to Local Free-Lancer",
-                home_intro: "Find local jobs and freelance opportunities in your area.",
-                quick_links: "Quick Links",
-                contact: "Contact",
-                footer_desc: "Empowering communities through local work opportunities. Connecting talent with opportunity to reduce poverty and build stronger communities.",
-                footer_email: "Email: support@localfreelancer.com",
-                footer_phone: "Phone: +1 (555) 123-4567",
-                footer_address: "Address: Local Community Center",
-                footer_copyright: "© 2024 Local Free-Lancer. All rights reserved. Dedicated to reducing poverty through local economic empowerment."
-            },
-            hi: {
-                brand: "लोकल फ्री-लांसर",
-                brand_footer: "लोकल फ्री-लांसर",
-                nav_home: "होम",
-                nav_dashboard: "डैशबोर्ड",
-                nav_post_job: "नौकरी पोस्ट करें",
-                nav_my_profile: "मेरी प्रोफाइल",
-                nav_login: "लॉगिन",
-                nav_register: "रजिस्टर",
-                nav_logout: "लॉगआउट",
-                welcome: "स्वागत है",
-                home_title: "लोकल फ्री-लांसर में आपका स्वागत है",
-                home_intro: "अपने क्षेत्र में स्थानीय नौकरियां और फ्रीलांस अवसर खोजें।",
-                quick_links: "त्वरित लिंक",
-                contact: "संपर्क करें",
-                footer_desc: "स्थानीय कार्य के अवसरों के माध्यम से समुदायों को सशक्त बनाना। गरीबी को कम करने और मजबूत समुदाय बनाने के लिए प्रतिभा को अवसर से जोड़ना।",
-                footer_email: "ईमेल: support@localfreelancer.com",
-                footer_phone: "फोन: +1 (555) 123-4567",
-                footer_address: "पता: स्थानीय सामुदायिक केंद्र",
-                footer_copyright: "© 2024 लोकल फ्री-लांसर. सर्वाधिकार सुरक्षित. स्थानीय आर्थिक सशक्तिकरण के माध्यम से गरीबी को कम करने के लिए समर्पित।"
-            },
-            mr: {
-                brand: "लोकल फ्री-लांसर",
-                brand_footer: "लोकल फ्री-लांसर",
-                nav_home: "होम",
-                nav_dashboard: "डॅशबोर्ड",
-                nav_post_job: "नोकरी पोस्ट करा",
-                nav_my_profile: "माझी प्रोफाइल",
-                nav_login: "लॉगिन",
-                nav_register: "रजिस्टर",
-                nav_logout: "लॉगआउट",
-                welcome: "स्वागत आहे",
-                home_title: "लोकल फ्री-लांसर मध्ये आपले स्वागत आहे",
-                home_intro: "आपल्या भागातील स्थानिक नोकऱ्या आणि फ्रीलान्स संधी शोधा.",
-                quick_links: "द्रुत दुवे",
-                contact: "संपर्क",
-                footer_desc: "स्थानिक कामाच्या संधींमधून समुदायांना सक्षम बनवणे. गरिबी कमी करण्यासाठी आणि मजबूत समुदाय तयार करण्यासाठी प्रतिभेला संधीशी जोडणे.",
-                footer_email: "ईमेल: support@localfreelancer.com",
-                footer_phone: "फोन: +1 (555) 123-4567",
-                footer_address: "पत्ता: स्थानिक कम्युनिटी सेंटर",
-                footer_copyright: "© 2024 लोकल फ्री-लांसर. सर्व हक्क राखीव. स्थानिक आर्थिक सशक्तीकरणाद्वारे गरिबी कमी करण्यासाठी समर्पित."
-            }
-        };
+
 
         // Function to translate page content
         function translatePage(lang) {
@@ -346,18 +454,18 @@
             }
 
             if (dropdown && menu && currentLang) {
-                dropdown.addEventListener('click', function(e) {
+                dropdown.addEventListener('click', function (e) {
                     e.stopPropagation();
                     menu.classList.toggle('hidden');
                 });
 
-                document.addEventListener('click', function() {
+                document.addEventListener('click', function () {
                     menu.classList.add('hidden');
                 });
 
                 const options = document.querySelectorAll('.' + optionClass);
                 options.forEach(option => {
-                    option.addEventListener('click', function() {
+                    option.addEventListener('click', function () {
                         lang = this.getAttribute('data-lang');
                         const langText = this.textContent;
                         currentLang.textContent = langText;
@@ -369,17 +477,12 @@
             }
         }
 
-        // Setup language dropdowns for both authenticated and guest users
-        // Note: You removed the language dropdowns in your provided HTML.
-        // If you re-add them, you'll need to uncomment these lines and ensure the IDs match.
-        // setupLanguageDropdown('languageDropdown', 'languageMenu', 'currentLanguage', 'language-option', 'siteLang');
-        // setupLanguageDropdown('languageDropdownGuest', 'languageMenuGuest', 'currentLanguageGuest', 'language-option-guest', 'siteLang');
-
         // On page load, translate using stored language
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             const lang = localStorage.getItem('siteLang') || 'en';
             translatePage(lang);
         });
     </script>
 </body>
+
 </html>

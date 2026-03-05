@@ -3,7 +3,8 @@
 {% block title %}Freelancer Dashboard - Local Free-Lancer{% endblock %}
 
 {% block content %}
-<div class="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-indigo-900 text-gray-100 py-8 px-4 sm:px-6 lg:px-8">
+{# REMOVED the background gradient classes from this div to make it transparent #}
+<div class="min-h-screen text-gray-100 py-8 px-4 sm:px-6 lg:px-8">
     <div class="max-w-7xl mx-auto space-y-8">
 
         <div class="bg-gray-800/80 backdrop-blur-md rounded-2xl shadow-2xl p-6 border border-blue-700">
@@ -31,7 +32,7 @@
                     </div>
                     <div class="ml-4">
                         <p class="text-sm font-medium text-blue-300">Available Jobs</p>
-                        <p class="text-3xl font-bold text-blue-100">{{ available_jobs.paginator.count }}</p> {# Use paginator.count for total available jobs #}
+                        <p class="text-3xl font-bold text-blue-100">{{ total_available_jobs }}</p>
                     </div>
                 </div>
             </a>
@@ -47,7 +48,7 @@
                     </div>
                     <div class="ml-4">
                            <p class="text-sm font-medium text-purple-300">Profile Completion</p>
-                         <p class="text-3xl font-bold text-purple-100">85%</p> {# This is hardcoded for now #}
+                         <p class="text-3xl font-bold text-purple-100">{{ profile_completion }}%</p>
                     </div>
                 </div>
             </a>
@@ -63,7 +64,7 @@
                     </div>
                     <div class="ml-4">
                         <p class="text-sm font-medium text-green-300">Messages</p>
-                        <p class="text-3xl font-bold text-green-100">3 New</p> {# This is hardcoded for now #}
+                        <p class="text-3xl font-bold text-green-100">{{ unread_messages_count }} New</p>
                     </div>
                 </div>
             </a>
@@ -111,7 +112,7 @@
                 <div class="border-2 border-blue-700 rounded-xl p-4 transition-all duration-300 hover:shadow-2xl hover:border-blue-400 group bg-blue-900/40">
                     <h3 class="text-lg font-semibold text-blue-200 mb-2">My Applications</h3>
                     <p class="text-sm text-blue-300 mb-4">Review and track the jobs you applied to</p>
-                    <a href="{% url 'dashboard' %}" class="inline-flex items-center px-5 py-2.5 border border-transparent text-sm font-medium rounded-lg text-white bg-blue-600 hover:bg-blue-700 transition-colors shadow-md transform hover:scale-105">
+                    <a href="{% url 'my_applications' %}" class="inline-flex items-center px-5 py-2.5 border border-transparent text-sm font-medium rounded-lg text-white bg-blue-600 hover:bg-blue-700 transition-colors shadow-md transform hover:scale-105">
                         View Applications
                     </a>
                 </div>
@@ -124,7 +125,6 @@
                 </div>
             </div>
         </div>
-
         <div id="available-jobs" class="bg-gray-800/80 backdrop-blur-md rounded-2xl shadow-2xl border border-blue-700">
             <div class="px-6 py-5 border-b-2 border-blue-700">
                 <h2 class="text-2xl font-semibold text-blue-300">Available Jobs</h2>
@@ -284,19 +284,17 @@
                 </div>
             {% endif %}
         </div>
-
         <div class="container mx-auto px-4 py-8">
 
 
 
       <div class="container mx-auto px-5 py-8">
         <div class="bg-gray-800/80 backdrop-blur-md rounded-2xl shadow-2xl p-6 border border-blue-700 mb-8">
-            <div class="px-0 py-0 border-b-2 border-blue-00 pb-3 mb-4">
+            <div class="px-0 py-0 border-b-2 border-blue-700 pb-3 mb-4">
                 <h2 class="text-2xl font-semibold text-blue-300">Community Resources & Skill Development</h2>
                 <p class="text-blue-200 mt-1">Access resources to help you succeed and overcome challenges</p>
             </div>
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <!-- Skill Development Section -->
                 <div class="border-2 border-blue-800 rounded-xl p-4 transition-all duration-300 hover:shadow-2xl hover:border-blue-400 group bg-blue-900/40">
                     <div class="flex items-center mb-3">
                         <div class="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center mr-3 shadow-md">
@@ -325,7 +323,6 @@
                     </div>
                 </div>
 
-                <!-- Financial Support Section -->
                 <div class="border-2 border-green-700 rounded-xl p-4 transition-all duration-300 hover:shadow-2xl hover:border-green-400 group bg-green-900/40">
                     <div class="flex items-center mb-3">
                         <div class="w-10 h-10 bg-green-600 rounded-full flex items-center justify-center mr-3 shadow-md">
@@ -341,7 +338,6 @@
                     </div>
                 </div>
 
-                <!-- Community Support Section -->
                 <div class="border-2 border-purple-700 rounded-xl p-4 transition-all duration-300 hover:shadow-2xl hover:border-purple-400 group bg-purple-900/40">
                     <div class="flex items-center mb-3">
                         <div class="w-10 h-10 bg-purple-600 rounded-full flex items-center justify-center mr-3 shadow-md">
@@ -362,7 +358,6 @@
             </div>
         </div>
 
-        <!-- Help & Support Section -->
         <div class="bg-gray-800/80 backdrop-blur-md rounded-2xl shadow-2xl p-6 border border-red-700">
             <div class="px-0 py-0 border-b-2 border-red-700 pb-3 mb-4">
                 <h2 class="text-2xl font-semibold text-red-300">Help & Support</h2>
@@ -437,8 +432,8 @@
 		
 		// This function simulates making an API call to a backend or a generative model
         async function getRecommendations(prompt, schema) {
-            const API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=";
-            const apiKey = ""; 
+            const API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=";
+            const apiKey = ""; // Replace with your actual API key
 
             const payload = {
                 contents: [{ parts: [{ text: prompt }] }],
@@ -866,35 +861,35 @@
             }
             recommendationsContent.innerHTML = html;
         }
-        
-        // Prevent alert and confirm dialogs
-        window.alert = function(message) {
-            const createModal = document.createElement('div');
-            createModal.className = 'fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50';
-            createModal.innerHTML = `
-                <div class="bg-gray-800 border-2 border-blue-700 rounded-xl shadow-lg p-6 w-80 text-center">
-                    <p class="text-lg text-blue-200 mb-4">${message}</p>
-                    <button class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded" onclick="this.parentElement.parentElement.remove()">OK</button>
-                </div>
-            `;
-            document.body.appendChild(createModal);
-        };
-        window.confirm = function(message) {
-            return new Promise((resolve) => {
-                const createModal = document.createElement('div');
-                createModal.className = 'fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50';
-                createModal.innerHTML = `
-                    <div class="bg-gray-800 border-2 border-blue-700 rounded-xl shadow-lg p-6 w-80 text-center">
-                        <p class="text-lg text-blue-200 mb-4">${message}</p>
-                        <div class="flex justify-around">
-                            <button class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded" onclick="this.parentElement.parentElement.remove(); resolve(true);">OK</button>
-                            <button class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded" onclick="this.parentElement.parentElement.remove(); resolve(false);">Cancel</button>
-                        </div>
-                    </div>
-                `;
-                document.body.appendChild(createModal);
-            });
-        };
-    </script>
+		
+		// Prevent alert and confirm dialogs
+		window.alert = function(message) {
+			const createModal = document.createElement('div');
+			createModal.className = 'fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50';
+			createModal.innerHTML = `
+				<div class="bg-gray-800 border-2 border-blue-700 rounded-xl shadow-lg p-6 w-80 text-center">
+					<p class="text-lg text-blue-200 mb-4">${message}</p>
+					<button class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded" onclick="this.parentElement.parentElement.remove()">OK</button>
+				</div>
+			`;
+			document.body.appendChild(createModal);
+		};
+		window.confirm = function(message) {
+			return new Promise((resolve) => {
+				const createModal = document.createElement('div');
+				createModal.className = 'fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50';
+				createModal.innerHTML = `
+					<div class="bg-gray-800 border-2 border-blue-700 rounded-xl shadow-lg p-6 w-80 text-center">
+						<p class="text-lg text-blue-200 mb-4">${message}</p>
+						<div class="flex justify-around">
+							<button class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded" onclick="this.parentElement.parentElement.remove(); resolve(true);">OK</button>
+							<button class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded" onclick="this.parentElement.parentElement.remove(); resolve(false);">Cancel</button>
+						</div>
+					</div>
+				`;
+				document.body.appendChild(createModal);
+			});
+		};
+	</script>
 
  {% endblock %}

@@ -1,6 +1,3 @@
-<<<<<<< HEAD
-# Local_FreeLancer
-=======
 # Local Free-Lancer Platform
 
 A Django-based freelancer platform focused on reducing poverty through local economic empowerment. This platform connects local workers with job opportunities, providing resources and support to help communities thrive.
@@ -247,4 +244,3 @@ Our mission is to reduce poverty through local economic empowerment by connectin
 ---
 
 **Local Free-Lancer** - Empowering communities through local work opportunities.
->>>>>>> 8269074 (Initial commit)

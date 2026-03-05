@@ -1,188 +1,179 @@
 {% extends 'freelancer_platform/base.html' %}
+{% load custom_filters %}
 
-{% block title %}Post Job - Local Free-Lancer{% endblock %}
+{% block title %}Post Job - Village Services{% endblock %}
 
 {% block content %}
-<div class="max-w-5xl mx-auto animate-fade-in px-6">
-  <div class="rounded-3xl shadow-2xl overflow-hidden border border-white/20 bg-gradient-to-br from-sky-100/70 to-indigo-200/50 backdrop-blur-xl backdrop-saturate-150">
+<div
+  class="min-h-screen bg-transparent text-gray-100 py-8 px-4 sm:px-6 lg:px-8">
+  <div class="max-w-4xl mx-auto animate-fade-in">
+    <div class="bg-gray-800/80 backdrop-blur-md rounded-2xl shadow-2xl overflow-hidden border border-blue-700">
 
-    <!-- Header -->
-    <div class="px-8 py-6 bg-gradient-to-r from-indigo-500/70 to-primary/70 text-white">
-      <h1 class="text-3xl font-bold flex items-center gap-3 drop-shadow-lg">
-        <svg class="w-8 h-8 animate-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 11V3m0 8l3-3m-3 3L9 8" />
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 21H3v-6a9 9 0 0118 0v6z" />
-        </svg>
-        Post a New Job
-      </h1>
-      <p class="text-sm opacity-90">Find local talent quickly by creating a sleek job post.</p>
-    </div>
+      <div class="px-8 py-5 border-b-2 border-blue-700">
+        <h1 class="text-3xl font-bold flex items-center gap-3 text-blue-300">
+          <svg class="w-8 h-8 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 11V3m0 8l3-3m-3 3L9 8" />
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 21H3v-6a9 9 0 0118 0v6z" />
+          </svg>
+          Post a New Job
+        </h1>
+        <p class="text-blue-200 text-sm mt-1">Fill out the form below to find the best local talent for your project.
+        </p>
+      </div>
 
-    <!-- Form -->
-    <div class="px-8 py-10">
-      <form method="post" class="space-y-10">
-        {% csrf_token %}
+      <div class="px-8 py-10">
+        <form method="post" class="space-y-8">
+          {% csrf_token %}
 
-        <!-- Row 1: Job Title + Category -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div class="flex flex-col">
-            <label class="text-sm font-semibold text-gray-700 mb-2">Job Title *</label>
-            {{ form.title }}
-            {% if form.title.errors %}
-              <div class="text-red-500 text-sm mt-1">
-                {% for error in form.title.errors %}
-                  {{ error }}
-                {% endfor %}
-              </div>
-            {% endif %}
-          </div>
-          <div class="flex flex-col">
-            <label class="text-sm font-semibold text-gray-700 mb-2">Job Category *</label>
-            {{ form.category }}
-            {% if form.category.errors %}
-              <div class="text-red-500 text-sm mt-1">
-                {% for error in form.category.errors %}
-                  {{ error }}
-                {% endfor %}
-              </div>
-            {% endif %}
-          </div>
-        </div>
-
-        <!-- Row 2: Company + Location -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div class="flex flex-col">
-            <label class="text-sm font-semibold text-gray-700 mb-2">Company (Optional)</label>
-            {{ form.company_name }}
-            {% if form.company_name.errors %}
-              <div class="text-red-500 text-sm mt-1">
-                {% for error in form.company_name.errors %}
-                  {{ error }}
-                {% endfor %}
-              </div>
-            {% endif %}
-          </div>
-          <div class="flex flex-col">
-            <label class="text-sm font-semibold text-gray-700 mb-2">Location (Optional)</label>
-            {{ form.location }}
-            {% if form.location.errors %}
-              <div class="text-red-500 text-sm mt-1">
-                {% for error in form.location.errors %}
-                  {{ error }}
-                {% endfor %}
-              </div>
-            {% endif %}
-          </div>
-        </div>
-
-        <!-- Row 3: Salary Min + Max + Duration + Workers -->
-        <div class="grid grid-cols-1 md:grid-cols-5 gap-6">
-          <div class="flex flex-col">
-            <label class="text-sm font-semibold text-gray-700 mb-2">Min Salary (₹) (Optional)</label>
-            {{ form.salary_min }}
-            {% if form.salary_min.errors %}
-              <div class="text-red-500 text-sm mt-1">
-                {% for error in form.salary_min.errors %}
-                  {{ error }}
-                {% endfor %}
-              </div>
-            {% endif %}
-          </div>
-          <div class="flex flex-col">
-            <label class="text-sm font-semibold text-gray-700 mb-2">Max Salary (₹) (Optional)</label>
-            {{ form.salary_max }}
-            {% if form.salary_max.errors %}
-              <div class="text-red-500 text-sm mt-1">
-                {% for error in form.salary_max.errors %}
-                  {{ error }}
-                {% endfor %}
-              </div>
-            {% endif %}
-          </div>
-          <div class="flex flex-col">
-            <label class="text-sm font-semibold text-gray-700 mb-2">Duration *</label>
-            {{ form.duration_months }}
-            {% if form.duration_months.errors %}
-              <div class="text-red-500 text-sm mt-1">
-                {% for error in form.duration_months.errors %}
-                  {{ error }}
-                {% endfor %}
-              </div>
-            {% endif %}
-          </div>
-          <div class="flex flex-col">
-            <label class="text-sm font-semibold text-gray-700 mb-2">Duration Unit *</label>
-            {{ form.duration_unit }}
-            {% if form.duration_unit.errors %}
-              <div class="text-red-500 text-sm mt-1">
-                {% for error in form.duration_unit.errors %}
-                  {{ error }}
-                {% endfor %}
-              </div>
-            {% endif %}
-          </div>
-          <div class="flex flex-col">
-            <label class="text-sm font-semibold text-gray-700 mb-2">Workers Needed *</label>
-            {{ form.workers_needed }}
-            {% if form.workers_needed.errors %}
-              <div class="text-red-500 text-sm mt-1">
-                {% for error in form.workers_needed.errors %}
-                  {{ error }}
-                {% endfor %}
-              </div>
-            {% endif %}
-          </div>
-        </div>
-
-        <!-- Row 4: Skills -->
-        <div class="flex flex-col">
-          <label class="text-sm font-semibold text-gray-700 mb-2">Required Skills *</label>
-          {{ form.required_skills }}
-          <p class="text-xs text-gray-500 mt-1">Separate skills with commas (e.g.Rajma special,Arc welding).</p>
-          {% if form.required_skills.errors %}
-            <div class="text-red-500 text-sm mt-1">
-              {% for error in form.required_skills.errors %}
-                {{ error }}
+          {% if form.non_field_errors %}
+          <div class="bg-red-900/50 text-red-200 border border-red-700 p-4 rounded-md">
+            <p class="font-bold">Please correct the following errors:</p>
+            <ul class="list-disc pl-5 mt-2 text-sm">
+              {% for error in form.non_field_errors %}
+              <li>{{ error }}</li>
               {% endfor %}
-            </div>
+            </ul>
+          </div>
           {% endif %}
-        </div>
 
-        <!-- Row 5: Description -->
-        <div class="flex flex-col">
-          <label class="text-sm font-semibold text-gray-700 mb-2">Job Description *</label>
-          {{ form.description }}
-          {% if form.description.errors %}
-            <div class="text-red-500 text-sm mt-1">
-              {% for error in form.description.errors %}
-                {{ error }}
-              {% endfor %}
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="flex flex-col">
+              <label for="{{ form.title.id_for_label }}" class="text-sm font-semibold text-blue-200 mb-2">Job Title
+                *</label>
+              {{ form.title }}
+              {% if form.title.errors %}
+              <div class="text-red-400 text-sm mt-1">{{ form.title.errors.0 }}</div>
+              {% endif %}
             </div>
-          {% endif %}
-        </div>
+            <div class="flex flex-col">
+              <label for="{{ form.category.id_for_label }}" class="text-sm font-semibold text-blue-200 mb-2">Job
+                Category *</label>
+              {{ form.category }}
+              {% if form.category.errors %}
+              <div class="text-red-400 text-sm mt-1">{{ form.category.errors.0 }}</div>
+              {% endif %}
+            </div>
+          </div>
 
-        <!-- Buttons -->
-        <div class="flex flex-col sm:flex-row gap-5 justify-end">
-          <a href="{% url 'dashboard' %}" 
-             class="flex-1 sm:flex-none px-6 py-3 rounded-xl bg-white/70 text-gray-700 font-semibold shadow-md hover:bg-white/90 focus:ring-2 focus:ring-indigo-400 text-center">
-            Cancel
-          </a>
-          <button type="submit" 
-                  class="flex-1 sm:flex-none px-6 py-3 rounded-xl bg-indigo-500 text-white font-semibold shadow-lg hover:bg-indigo-600 focus:ring-2 focus:ring-indigo-400 transform hover:scale-[1.03] transition">
-            Post Job 🚀
-          </button>
-        </div>
-      </form>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="flex flex-col">
+              <label for="{{ form.company_name.id_for_label }}"
+                class="text-sm font-semibold text-blue-200 mb-2">Company (Optional)</label>
+              {{ form.company_name }}
+              {% if form.company_name.errors %}
+              <div class="text-red-400 text-sm mt-1">{{ form.company_name.errors.0 }}</div>
+              {% endif %}
+            </div>
+            <div class="flex flex-col">
+              <label for="{{ form.location.id_for_label }}" class="text-sm font-semibold text-blue-200 mb-2">Location
+                (Optional)</label>
+              {{ form.location }}
+              {% if form.location.errors %}
+              <div class="text-red-400 text-sm mt-1">{{ form.location.errors.0 }}</div>
+              {% endif %}
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-5 gap-6">
+            <div class="flex flex-col md:col-span-1">
+              <label for="{{ form.salary_min.id_for_label }}" class="text-sm font-semibold text-blue-200 mb-2">Min
+                Salary (₹)</label>
+              {{ form.salary_min }}
+              {% if form.salary_min.errors %}
+              <div class="text-red-400 text-sm mt-1">{{ form.salary_min.errors.0 }}</div>
+              {% endif %}
+            </div>
+            <div class="flex flex-col md:col-span-1">
+              <label for="{{ form.salary_max.id_for_label }}" class="text-sm font-semibold text-blue-200 mb-2">Max
+                Salary (₹)</label>
+              {{ form.salary_max }}
+              {% if form.salary_max.errors %}
+              <div class="text-red-400 text-sm mt-1">{{ form.salary_max.errors.0 }}</div>
+              {% endif %}
+            </div>
+            <div class="flex flex-col md:col-span-1">
+              <label for="{{ form.duration_months.id_for_label }}"
+                class="text-sm font-semibold text-blue-200 mb-2">Duration *</label>
+              {{ form.duration_months }}
+              {% if form.duration_months.errors %}
+              <div class="text-red-400 text-sm mt-1">{{ form.duration_months.errors.0 }}</div>
+              {% endif %}
+            </div>
+            <div class="flex flex-col md:col-span-1">
+              <label for="{{ form.duration_unit.id_for_label }}" class="text-sm font-semibold text-blue-200 mb-2">Unit
+                *</label>
+              {{ form.duration_unit }}
+              {% if form.duration_unit.errors %}
+              <div class="text-red-400 text-sm mt-1">{{ form.duration_unit.errors.0 }}</div>
+              {% endif %}
+            </div>
+            <div class="flex flex-col md:col-span-1">
+              <label for="{{ form.workers_needed.id_for_label }}"
+                class="text-sm font-semibold text-blue-200 mb-2">Workers *</label>
+              {{ form.workers_needed }}
+              {% if form.workers_needed.errors %}
+              <div class="text-red-400 text-sm mt-1">{{ form.workers_needed.errors.0 }}</div>
+              {% endif %}
+            </div>
+          </div>
+
+          <div class="flex flex-col">
+            <label for="{{ form.required_skills.id_for_label }}"
+              class="text-sm font-semibold text-blue-200 mb-2">Required Skills *</label>
+            {{ form.required_skills }}
+            <p class="text-xs text-slate-400 mt-1">Separate skills with commas (e.g., Arc Welding, TIG Welding, Metal
+              Fabrication).</p>
+            {% if form.required_skills.errors %}
+            <div class="text-red-400 text-sm mt-1">{{ form.required_skills.errors.0 }}</div>
+            {% endif %}
+          </div>
+
+          <div class="flex flex-col">
+            <label for="{{ form.description.id_for_label }}" class="text-sm font-semibold text-blue-200 mb-2">Job
+              Description *</label>
+            {{ form.description }}
+            {% if form.description.errors %}
+            <div class="text-red-400 text-sm mt-1">{{ form.description.errors.0 }}</div>
+            {% endif %}
+          </div>
+
+          <div class="flex flex-col sm:flex-row gap-4 justify-end border-t border-blue-800 pt-6">
+            <a href="{% url 'dashboard' %}"
+              class="w-full sm:w-auto inline-flex items-center justify-center px-6 py-3 rounded-lg border border-slate-500 text-slate-300 font-semibold hover:bg-slate-700 transition-colors">
+              Cancel
+            </a>
+            <button type="submit"
+              class="w-full sm:w-auto inline-flex items-center justify-center px-6 py-3 rounded-lg bg-blue-600 text-white font-semibold shadow-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-blue-500 transform hover:scale-105 transition-all">
+              Post Job 🚀
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   </div>
 </div>
 
-<!-- Tailwind Animations -->
 <style>
-@keyframes fade-in {
-  0% { opacity: 0; transform: translateY(10px); }
-  100% { opacity: 1; transform: translateY(0); }
-}
-.animate-fade-in { animation: fade-in 0.6s ease-out; }
+  @keyframes fade-in {
+    0% {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+
+    100% {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .animate-fade-in {
+    animation: fade-in 0.6s ease-out;
+  }
+
+  /* Improve placeholder visibility on dark background while keeping inputs white */
+  input::placeholder,
+  textarea::placeholder {
+    color: #6B7280; /* slate-500 */
+  }
 </style>
 {% endblock %}

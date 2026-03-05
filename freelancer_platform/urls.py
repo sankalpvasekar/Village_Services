@@ -14,7 +14,7 @@ from .views import (
     certification_links_api, online_learning_links_api, financial_resources_api,
     community_resources_api, legal_resources_api, health_resources_api,
     emergency_resources_api, chat_page, send_message, get_messages,
-    messages_list_view, workspace_detail
+    messages_list_view, workspace_detail, my_applications
 )
 
 
@@ -55,6 +55,7 @@ urlpatterns = [
     path('payment/<int:payment_id>/submit-work/', submit_work, name='submit_work'),
     path('payment/<int:payment_id>/review-work/', review_work, name='review_work'),
     path('payment-history/', payment_history, name='payment_history'),
+    path('my-applications/', my_applications, name='my_applications'),
     
     # Complaint System URLs
     path('file-complaint/', file_complaint_general, name='file_complaint_general'),

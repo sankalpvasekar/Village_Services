@@ -7,6 +7,7 @@ from django.contrib import messages
 from django.contrib.auth.models import User
 from django.db import transaction
 from django.http import JsonResponse
+import re
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 from django.db.models import Q, F
@@ -16,6 +17,9 @@ import requests
 import os
 import re, json as pyjson
 from django.utils import timezone
+from decimal import Decimal, InvalidOperation
+from django.core.exceptions import ValidationError
+
 from .models import UserProfile, Job, Application, JobRequest, WorkExample, Payment, WorkTracking, Complaint, LocalResource, Message
 from .forms import UserRegistrationForm, JobForm, ApplicationForm, JobRequestForm, FreelancerProfileForm, WorkExampleForm, PaymentForm, WorkTrackingForm, ComplaintForm, AdminComplaintResolutionForm, RecruiterProfileForm, RecruiterUserForm
 from .ai_utils import get_skill_recommendations, get_similar_skills, get_job_matching_score
@@ -185,12 +189,17 @@ def freelancer_dashboard(request):
         messages.error(request, 'Access denied. You are not a freelancer.')
         return redirect('recruiter_dashboard')
     
+    # Avoid reverse-relation exclude which Djongo struggles to translate
+    applied_job_ids = Application.objects.filter(
+    freelancer=user_profile
+    ).values_list('job_id', flat=True)
     all_available_jobs = Job.objects.filter(status='open').exclude(
-        applications__freelancer=user_profile
+        id__in=list(applied_job_ids)
     ).order_by('-created_at')
     
     page = request.GET.get('page', 1)
-    paginator = Paginator(all_available_jobs, 10)
+    jobs_list = list(all_available_jobs)
+    paginator = Paginator(jobs_list, 10)
     
     try:
         available_jobs_page = paginator.page(page)
@@ -201,12 +210,35 @@ def freelancer_dashboard(request):
         
     my_applications = Application.objects.filter(freelancer=user_profile)
     my_job_requests = JobRequest.objects.filter(freelancer=user_profile)
+    
+    # Calculate profile completion percentage
+    profile_fields = [
+        user_profile.user.first_name,
+        user_profile.user.last_name,
+        user_profile.user.email,
+        user_profile.phone,
+        user_profile.address,
+        user_profile.bio,
+        user_profile.skills,
+        user_profile.selected_skills,
+    ]
+    completed_fields = sum(1 for field in profile_fields if field)
+    profile_completion = int((completed_fields / len(profile_fields)) * 100) if profile_fields else 0
+    
+    # Get unread message count (messages received by current user)
+    unread_messages_count = Message.objects.filter(receiver=request.user).count()
+    
+    # Get total available jobs count
+    total_available_jobs = all_available_jobs.count()
 
     context = {
         'user_profile': user_profile,
         'available_jobs': available_jobs_page,
         'my_applications': my_applications,
         'my_job_requests': my_job_requests,
+        'profile_completion': profile_completion,
+        'unread_messages_count': unread_messages_count,
+        'total_available_jobs': total_available_jobs,
     }
     return render(request, 'freelancer_platform/freelancer_dashboard.html', context)
 
@@ -539,6 +571,50 @@ def post_job(request):
         return redirect('home')
 
 @login_required
+def my_applications(request):
+    """List the jobs the freelancer has applied to"""
+    try:
+        user_profile = UserProfile.objects.get(user=request.user)
+        if user_profile.user_type != 'freelancer':
+            messages.error(request, 'Only freelancers can view their applications.')
+            return redirect('dashboard')
+
+        applications = (Application.objects
+                        .filter(freelancer=user_profile)
+                        .select_related('job', 'job__recruiter__user')
+                        .order_by('-applied_at'))
+
+        # Include Job Requests made by the freelancer to show their approval status
+        job_requests = (JobRequest.objects
+                        .filter(freelancer=user_profile)
+                        .select_related('job')
+                        .order_by('-created_at'))
+
+        context = {
+            'user_profile': user_profile,
+            'applications': applications,
+            'job_requests': job_requests,
+        }
+        return render(request, 'freelancer_platform/my_applications.html', context)
+    except UserProfile.DoesNotExist:
+        messages.error(request, 'User profile not found.')
+        return redirect('home')
+    except Exception as e:
+        # If fetching the profile fails due to malformed Decimal (e.g., smart-quoted "0.00"), fix and retry
+        from django.core.exceptions import ValidationError
+        if isinstance(e, ValidationError):
+            try:
+                # Update directly in DB without model instantiation
+                UserProfile.objects.filter(user=request.user).update(hourly_rate=Decimal('0.00'))
+                user_profile = UserProfile.objects.get(user=request.user)
+            except Exception:
+                messages.error(request, 'There was an error accessing your profile. Please try again.')
+                return redirect('home')
+        else:
+            messages.error(request, 'There was an error accessing your profile. Please try again.')
+            return redirect('home')
+
+@login_required
 def job_detail(request, job_id):
     """View job details"""
     job = get_object_or_404(Job, id=job_id)
@@ -615,10 +691,12 @@ def view_applications(request, job_id):
         
         job = get_object_or_404(Job, id=job_id, recruiter=user_profile)
         applications = Application.objects.filter(job=job)
+        job_requests = JobRequest.objects.filter(job=job)
         
         context = {
             'job': job,
             'applications': applications,
+            'job_requests': job_requests,
         }
         return render(request, 'freelancer_platform/view_applications.html', context)
     
@@ -699,27 +777,33 @@ def approve_job_request(request, request_id):
             messages.error(request, 'Only recruiters can approve job requests.')
             return redirect('dashboard')
         
-        job_request = get_object_or_404(JobRequest, id=request_id, job__recruiter=user_profile)
-        job = job_request.job
-        
-        if job.status != 'open':
+        # Work entirely with values() to avoid instantiating any Decimal fields
+        jr = (JobRequest.objects
+              .filter(id=request_id, job__recruiter=user_profile)
+              .values('id', 'job_id', 'freelancer_id', 'status')
+              .first())
+        if not jr:
+            messages.error(request, 'Job request not found.')
+            return redirect('dashboard')
+
+        # Ensure the job is open before assignment (use values() to read status)
+        job_info = Job.objects.filter(id=jr['job_id']).values('id', 'status').first()
+        if not job_info:
+            messages.error(request, 'Job not found.')
+            return redirect('dashboard')
+        if job_info['status'] != 'open':
             messages.error(request, 'This job is no longer available.')
-            return redirect('view_job_requests', job_id=job.id)
-        
-        # Assign the job to the freelancer
-        job.assigned_freelancer = job_request.freelancer
-        job.status = 'assigned'
-        job.save()
-        
-        # Update the job request status
-        job_request.status = 'approved'
-        job_request.save()
-        
-        # Reject all other pending requests for this job
-        JobRequest.objects.filter(job=job, status='pending').exclude(id=request_id).update(status='rejected')
-        
-        messages.success(request, f'Job assigned to {job_request.freelancer.user.get_full_name() or job_request.freelancer.user.username}')
-        return redirect('view_job_requests', job_id=job.id)
+            return redirect('view_job_requests', job_id=jr['job_id'])
+
+        # Assign the job to the freelancer (no model instantiation)
+        Job.objects.filter(id=jr['job_id']).update(assigned_freelancer_id=jr['freelancer_id'], status='assigned')
+
+        # Approve this request and reject others via queryset updates
+        JobRequest.objects.filter(id=request_id).update(status='approved')
+        JobRequest.objects.filter(job_id=jr['job_id'], status='pending').exclude(id=request_id).update(status='rejected')
+
+        messages.success(request, 'Job assigned successfully.')
+        return redirect('view_job_requests', job_id=jr['job_id'])
     
     except UserProfile.DoesNotExist:
         messages.error(request, 'User profile not found.')
@@ -749,7 +833,12 @@ def reject_job_request(request, request_id):
 def freelancer_profile(request):
     """Freelancer profile management"""
     try:
-        user_profile = UserProfile.objects.get(user=request.user)
+        try:
+            user_profile = UserProfile.objects.get(user=request.user)
+        except ValidationError:
+            # Fix malformed Decimal fields (e.g., hourly_rate) and retry
+            UserProfile.objects.filter(user=request.user).update(hourly_rate=Decimal('0.00'))
+            user_profile = UserProfile.objects.get(user=request.user)
         if user_profile.user_type != 'freelancer':
             messages.error(request, 'Only freelancers can access this page.')
             return redirect('dashboard')
@@ -757,7 +846,36 @@ def freelancer_profile(request):
         if request.method == 'POST':
             form = FreelancerProfileForm(request.POST, request.FILES, instance=user_profile)
             if form.is_valid():
-                form.save()
+                # Update Django User name fields so messaging shows actual name
+                request.user.first_name = form.cleaned_data.get('first_name', '')
+                request.user.last_name = form.cleaned_data.get('last_name', '')
+                request.user.save()
+                try:
+                    obj = form.save(commit=False)
+                    # Ensure hourly_rate is a valid Decimal before full_clean/save triggers field validation
+                    try:
+                        if isinstance(obj.hourly_rate, str):
+                            hr_clean = re.sub(r'[^0-9\.-]', '', obj.hourly_rate)
+                            obj.hourly_rate = Decimal(hr_clean) if hr_clean else Decimal('0.00')
+                        elif obj.hourly_rate is None:
+                            obj.hourly_rate = Decimal('0.00')
+                    except Exception:
+                        obj.hourly_rate = Decimal('0.00')
+                    obj.save()
+                    form.save_m2m()
+                except (ValidationError, InvalidOperation, Exception):
+                    # Last resort: sanitize stored value and retry once
+                    try:
+                        UserProfile.objects.filter(pk=user_profile.pk).update(hourly_rate=Decimal('0.00'))
+                        refreshed = UserProfile.objects.get(pk=user_profile.pk)
+                        form.instance = refreshed
+                        obj = form.save(commit=False)
+                        obj.hourly_rate = Decimal('0.00')
+                        obj.save()
+                        form.save_m2m()
+                    except Exception:
+                        messages.error(request, 'There was an error saving your profile. We reset your hourly rate. Please try again.')
+                        return redirect('freelancer_profile')
                 messages.success(request, 'Profile updated successfully!')
                 return redirect('freelancer_profile')
             else:
@@ -783,37 +901,56 @@ def freelancer_profile(request):
 @login_required
 def recruiter_profile(request):
     """Recruiter profile: basic info and photo (no skills)."""
+    # Fetch profile and fix malformed hourly_rate if needed
     try:
         user_profile = UserProfile.objects.get(user=request.user)
-        if user_profile.user_type != 'recruiter':
-            messages.error(request, 'Only recruiters can access this page.')
-            return redirect('dashboard')
+    except ValidationError:
+        # If deserialization of Decimal failed (e.g., smart quotes), reset hourly_rate and retry
+        UserProfile.objects.filter(user=request.user).update(hourly_rate=Decimal('0.00'))
+        user_profile = UserProfile.objects.get(user=request.user)
+    except UserProfile.DoesNotExist:
+        messages.error(request, 'User profile not found.')
+        return redirect('home')
 
-        if request.method == 'POST':
-            uform = RecruiterUserForm(request.POST, instance=request.user)
-            pform = RecruiterProfileForm(request.POST, request.FILES, instance=user_profile)
-            if uform.is_valid() and pform.is_valid():
+    if user_profile.user_type != 'recruiter':
+        messages.error(request, 'Only recruiters can access this page.')
+        return redirect('dashboard')
+
+    if request.method == 'POST':
+        uform = RecruiterUserForm(request.POST, instance=request.user)
+        pform = RecruiterProfileForm(request.POST, request.FILES, instance=user_profile)
+        if uform.is_valid() and pform.is_valid():
+            # Force hourly_rate to a safe Decimal value before saving (recruiter doesn't edit this field)
+            user_profile.hourly_rate = Decimal('0.00')
+            try:
                 uform.save()
                 pform.save()
                 messages.success(request, 'Profile updated successfully!')
                 return redirect('recruiter_profile')
-            else:
-                for field, errors in (uform.errors.items() or pform.errors.items()):
-                    for error in errors:
-                        messages.error(request, f'{field}: {error}')
+            except ValidationError as e:
+                # Attempt one-time sanitize and retry
+                UserProfile.objects.filter(pk=user_profile.pk).update(hourly_rate=Decimal('0.00'))
+                try:
+                    uform.save()
+                    pform.save()
+                    messages.success(request, 'Profile updated successfully!')
+                    return redirect('recruiter_profile')
+                except Exception as e2:
+                    messages.error(request, f'Could not update profile due to data format: {e2}')
         else:
-            uform = RecruiterUserForm(instance=request.user)
-            pform = RecruiterProfileForm(instance=user_profile)
+            for field, errors in (uform.errors.items() or pform.errors.items()):
+                for error in errors:
+                    messages.error(request, f'{field}: {error}')
+    else:
+        uform = RecruiterUserForm(instance=request.user)
+        pform = RecruiterProfileForm(instance=user_profile)
 
-        context = {
-            'user_profile': user_profile,
-            'uform': uform,
-            'pform': pform,
-        }
-        return render(request, 'freelancer_platform/recruiter_profile.html', context)
-    except UserProfile.DoesNotExist:
-        messages.error(request, 'User profile not found.')
-        return redirect('home')
+    context = {
+        'user_profile': user_profile,
+        'uform': uform,
+        'pform': pform,
+    }
+    return render(request, 'freelancer_platform/recruiter_profile.html', context)
 
 @login_required
 def add_work_example(request):
@@ -871,13 +1008,19 @@ def skill_based_jobs(request):
             messages.error(request, 'Only freelancers can access skill-based recommendations.')
             return redirect('dashboard')
         
-        # Get freelancer's skills
-        freelancer_skills = user_profile.get_skills_list() + user_profile.selected_skills
+        # Build a normalized set of freelancer skills from free-text and selected categories
+        # - Include both category codes and display names for broader matching
+        # - Lowercase and strip whitespace for consistency
+        text_skills = [s.strip().lower() for s in (user_profile.get_skills_list() or []) if s and s.strip()]
+        selected_codes = list(user_profile.selected_skills or [])
+        code_to_label = dict(user_profile.SKILL_CATEGORIES)
+        selected_labels = [code_to_label.get(c, '').strip().lower() for c in selected_codes if code_to_label.get(c)]
+        freelancer_skills = list({*text_skills, *[c.lower() for c in selected_codes], *selected_labels})
         
         # Find jobs that match the freelancer's skills
         matching_jobs = []
         for job in Job.objects.filter(status='open'):
-            job_skills = [skill.strip().lower() for skill in job.required_skills.split(',')]
+            job_skills = [skill.strip().lower() for skill in (job.required_skills or '').split(',') if skill and skill.strip()]
             match_score = get_job_matching_score(freelancer_skills, job_skills)
             if match_score >= 5:  # Only show jobs with decent match
                 matching_jobs.append({
@@ -1388,11 +1531,21 @@ def get_messages(request, user_id):
         return JsonResponse({'success': True, 'messages': message_list})
     except Exception as e:
         return JsonResponse({'success': False, 'error': str(e)}, status=500)
-    
+
 def messages_list_view(request):
-    # Get all users except the current user
-    user_profiles = UserProfile.objects.exclude(user=request.user)
-    return render(request, 'freelancer_platform/messages_list.html', {'user_profiles': user_profiles})
+    # Get all users except the current user and de-duplicate by normalized phone number.
+    # Prefer the most recently created profile in case of phone collisions.
+    qs = UserProfile.objects.exclude(user=request.user).order_by('-id')
+    unique_by_phone = {}
+    ordered = []
+    for p in qs:
+        phone_raw = (p.phone or '').strip()
+        phone_norm = re.sub(r'\D+', '', phone_raw) if phone_raw else ''
+        key = phone_norm or f"user-{p.user_id}"
+        if key not in unique_by_phone:
+            unique_by_phone[key] = p
+            ordered.append(p)
+    return render(request, 'freelancer_platform/messages_list.html', {'user_profiles': ordered})
 
 @login_required
 def workspace_detail(request):
@@ -1528,3 +1681,6 @@ def resolve_complaint(request, complaint_id):
         'complaint': complaint,
     }
     return render(request, 'freelancer_platform/resolve_complaint.html', context)
+
+
+

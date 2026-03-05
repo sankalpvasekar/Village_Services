@@ -39,7 +39,6 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'freelancer_platform',
-    'widget_tweaks',
 ]
 
 MIDDLEWARE = [
@@ -78,10 +77,27 @@ WSGI_APPLICATION = 'poverty_freelancer.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'djongo',
+        'NAME': 'freelancer_db',   # your DB name
+        # Relax schema enforcement to avoid unsupported ALTER statements in djongo
+        'ENFORCE_SCHEMA': False,
+        'CLIENT': {
+            # Use a URI so tools like MongoDB Compass see the DB cleanly
+            # If you use Atlas, set MONGODB_URI env to your SRV string
+            'host': os.getenv('MONGODB_URI', 'mongodb://127.0.0.1:27017'),
+            # For PyMongo 4 compatibility
+            'uuidRepresentation': 'standard',
+        }
     }
 }
+
+
+
+# MongoDB (PyMongo client) configuration for non-ORM access
+# These settings are used by `freelancer_platform/mongo_client.py`
+# and can be overridden via environment variables.
+MONGODB_URI = os.getenv('MONGODB_URI', 'mongodb://127.0.0.1:27017')
+MONGODB_DB_NAME = os.getenv('MONGODB_DB_NAME', 'freelancer_db')
 
 
 # Password validation
@@ -118,10 +134,11 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
 STATICFILES_DIRS = [
     BASE_DIR / 'static',
 ]
+STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 # Media files (User uploaded content)
 MEDIA_URL = '/media/'

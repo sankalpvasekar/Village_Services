@@ -1,347 +1,486 @@
 {% extends 'freelancer_platform/base.html' %}
 {% block title %}My Profile - Local Free-Lancer{% endblock %}
 
-{% block content %}
-<div class="min-h-screen bg-gradient-to-br from-blue-100 via-purple-100 to-pink-100">
-<div class="container mx-auto px-4 py-8 sm:py-12">
-    <div class="max-w-4xl mx-auto">
-        <div class="mb-8 md:mb-10 text-center">
-            <h1 class="text-5xl font-bold text-slate-800 mb-2 tracking-tight">
-                My Profile
-            </h1>
-            <p class="text-lg text-slate-600">
-                Manage your skills, work examples, and profile information
-            </p>
-        </div>
+{% block head %}
+<style>
+    /* Visually hide the original file input */
+    .file-input-hidden {
+        display: none !important; /* fully hide the native control */
+        border: 0;
+        clip: rect(0 0 0 0);
+        height: 1px;
+        margin: -1px;
+        overflow: hidden;
+        padding: 0;
+        position: absolute;
+        width: 1px;
+    }
 
-        <div class="bg-white/70 backdrop-blur-xl rounded-2xl shadow-2xl p-6 sm:p-8 mb-8 border border-white/50">
-            <h2 class="text-3xl font-semibold text-slate-900 mb-6 border-b-2 border-slate-200 pb-5">
-                Profile Information
-            </h2>
-            
-            {% if messages %}
-                <div class="mb-6 space-y-3">
-                    {% for message in messages %}
-                        <div class="p-4 rounded-lg text-sm font-medium {% if message.tags == 'success' %}bg-green-100 text-green-800 border-l-4 border-green-500{% elif message.tags == 'error' %}bg-red-100 text-red-800 border-l-4 border-red-500{% else %}bg-blue-100 text-blue-800 border-l-4 border-blue-500{% endif %}">
-                            {{ message }}
-                        </div>
-                    {% endfor %}
-                </div>
-            {% endif %}
-            
-            <form method="post" enctype="multipart/form-data">
-                {% csrf_token %}
-                
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
-                    <div class="space-y-6">
-                        <div>
-                            <label class="block text-sm font-semibold text-slate-700 mb-2">Phone</label>
-                            {{ form.phone }}
-                            {% if form.phone.errors %}
-                                <p class="text-red-500 text-sm mt-1.5">{{ form.phone.errors.0 }}</p>
-                            {% endif %}
-                        </div>
-                        
-                        <div>
-                            <label class="block text-sm font-semibold text-slate-700 mb-2">Address</label>
-                            {{ form.address }}
-                            {% if form.address.errors %}
-                                <p class="text-red-500 text-sm mt-1.5">{{ form.address.errors.0 }}</p>
-                            {% endif %}
-                        </div>
-                        
-                        <div>
-                            <label class="block text-sm font-semibold text-slate-700 mb-2">Experience (Years)</label>
-                            {{ form.experience_years }}
-                            {% if form.experience_years.errors %}
-                                <p class="text-red-500 text-sm mt-1.5">{{ form.experience_years.errors.0 }}</p>
-                            {% endif %}
-                        </div>
-                        
-                        <div>
-                            <label class="block text-sm font-semibold text-slate-700 mb-2">Hourly Rate ($)</label>
-                            {{ form.hourly_rate }}
-                            {% if form.hourly_rate.errors %}
-                                <p class="text-red-500 text-sm mt-1.5">{{ form.hourly_rate.errors.0 }}</p>
-                            {% endif %}
-                        </div>
+    /* Container for the custom file input elements */
+    .file-input-wrapper {
+        position: relative; /* ensure absolute children are positioned correctly */
+        display: flex;
+        gap: 0.5rem;
+        align-items: center;
+    }
+
+    /* Ensure the native file input is fully hidden inside our custom wrapper */
+    .file-input-wrapper input[type="file"] {
+        position: absolute !important;
+        top: 0 !important;
+        left: 0 !important;
+        width: 0.1px !important;
+        height: 0.1px !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        overflow: hidden !important;
+        clip: rect(0 0 0 0) !important;
+        white-space: nowrap !important;
+        border: 0 !important;
+        opacity: 0 !important; /* invisible but clickable via label */
+    }
+
+    /* --- UPDATED STYLE FOR THE BUTTON --- */
+    /* This now uses a dark brownish-gray (stone) color */
+    .file-input-button-label {
+        background-color: #292524; /* Dark brownish-gray (Tailwind's stone-800) */
+        color: #F3F4F6;            /* Light text (near-white) */
+        border: 1px solid #44403c; /* Darker stone border for definition */
+        padding: 0.5rem 1rem;
+        border-radius: 0.375rem;   /* rounded-md */
+        font-size: 0.875rem;       /* text-sm */
+        font-weight: 600;          /* font-semibold */
+        cursor: pointer;
+        transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, transform 0.1s ease;
+        flex-shrink: 0;
+        height: 2.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.35), 0 1px rgba(255, 255, 255, 0.03) inset; /* subtle depth */
+    }
+
+    .file-input-button-label:hover {
+        background-color: #44403c; /* Slightly lighter on hover (stone-700) */
+        border-color: #57534e;     /* border-stone-600 on hover */
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.45);
+        transform: translateY(-1px);
+    }
+
+    .file-input-button-label:focus-within {
+        outline: none;
+        box-shadow: 0 0 0 2px #22D3EE, 0 1px 2px rgba(0, 0, 0, 0.35); /* focus ring + base shadow */
+        border-color: #22D3EE;
+    }
+    /* --- END OF BUTTON STYLE --- */
+
+
+    /* Style for the "No file chosen" / filename text display area */
+    .file-display-area {
+        flex-grow: 1;
+        min-height: 2.5rem;
+        border: 1px solid #4B5563; /* border-gray-600 */
+        border-radius: 0.375rem;
+        background-color: #374151; /* bg-gray-700 */
+        padding: 0.5rem 0.75rem;
+        font-size: 0.875rem;
+        display: flex;
+        align-items: center;
+        overflow: hidden;
+    }
+
+    .file-input-text {
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+    }
+
+    .file-input-text.no-file {
+        color: #9CA3AF; /* placeholder-gray-400 */
+    }
+
+    .file-input-text.current-file-name {
+        color: #D1D5DB; /* text-gray-100 */
+    }
+    
+    .clearable-file-input {
+        display: none !important;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-indigo-900 text-gray-100">
+    <div class="container mx-auto px-4 py-8 sm:py-12">
+        <div class="max-w-4xl mx-auto">
+            <div class="mb-8 md:mb-10 text-center">
+                <h1 class="text-5xl font-bold text-blue-300 mb-2 tracking-tight">
+                    My Profile
+                </h1>
+                <p class="text-lg text-blue-200">
+                    Manage your skills, work examples, and profile information
+                </p>
+            </div>
+
+            <div class="bg-gray-800/80 backdrop-blur-md rounded-2xl shadow-2xl p-6 sm:p-8 mb-8 border border-blue-700">
+                <h2 class="text-3xl font-semibold text-blue-300 mb-6 border-b-2 border-blue-700 pb-5">
+                    Profile Information
+                </h2>
+
+                {% if messages %}
+                    <div class="mb-6 space-y-3">
+                        {% for message in messages %}
+                            <div class="p-4 rounded-lg text-sm font-medium {% if message.tags == 'success' %}bg-green-700 text-green-100 border-l-4 border-green-400{% elif message.tags == 'error' %}bg-red-700 text-red-100 border-l-4 border-red-400{% else %}bg-blue-700 text-blue-100 border-l-4 border-blue-400{% endif %}">
+                                {{ message }}
+                            </div>
+                        {% endfor %}
                     </div>
-                    
-                    <div class="space-y-6">
-                        <div>
-                            <label class="block text-sm font-semibold text-slate-700 mb-2">Profile Picture</label>
-                            
-                            {% if user_profile.profile_picture %}
-                                <div class="mb-4">
-                                    <p class="text-sm text-slate-600 mb-2">Current Profile Picture:</p>
-                                    <div class="flex items-center space-x-4">
-                                        <img src="{% if user_profile.profile_picture %}{{ user_profile.profile_picture.url }}{% endif %}" 
-                                             alt="Current Profile Picture" 
-                                             class="w-20 h-20 rounded-full object-cover border-4 border-white shadow-lg">
-                                        <div>
-                                            <p class="text-sm text-slate-600 font-medium">{{ user_profile.profile_picture.name|slice:"13:" }}</p>
-                                            <p class="text-xs text-slate-500">Uploaded: {{ user_profile.updated_at|date:"M d, Y" }}</p>
+                {% endif %}
+
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
+                        <div class="space-y-6">
+                            <h4 class="text-lg font-semibold text-blue-300">Personal Information</h4>
+                            <div>
+                                <label for="{{ form.phone.id_for_label }}" class="block text-sm font-semibold text-blue-200 mb-2">Phone</label>
+                                {{ form.phone }}
+                                {% if form.phone.errors %}
+                                    <p class="text-red-400 text-sm mt-1.5">{{ form.phone.errors.0 }}</p>
+                                {% endif %}
+                            </div>
+
+                            <div>
+                                <label for="{{ form.address.id_for_label }}" class="block text-sm font-semibold text-blue-200 mb-2">Address</label>
+                                {{ form.address }}
+                                {% if form.address.errors %}
+                                    <p class="text-red-400 text-sm mt-1.5">{{ form.address.errors.0 }}</p>
+                                {% endif %}
+                            </div>
+
+                            <div>
+                                <label for="{{ form.experience_years.id_for_label }}" class="block text-sm font-semibold text-blue-200 mb-2">Experience (Years)</label>
+                                {{ form.experience_years }}
+                                {% if form.experience_years.errors %}
+                                    <p class="text-red-400 text-sm mt-1.5">{{ form.experience_years.errors.0 }}</p>
+                                {% endif %}
+                            </div>
+
+                            <div>
+                                <label for="{{ form.bio.id_for_label }}" class="block text-sm font-semibold text-blue-200 mb-2">Bio</label>
+                                {{ form.bio }}
+                                {% if form.bio.errors %}
+                                    <p class="text-red-400 text-sm mt-1">{{ form.bio.errors.0 }}</p>
+                                {% endif %}
+                            </div>
+
+                        </div>
+
+                        <div class="space-y-6">
+                            <div>
+                                <label class="block text-sm font-semibold text-blue-200 mb-2">Profile Picture</label>
+
+                                {% if user_profile.profile_picture %}
+                                    <div class="mb-4">
+                                        <p class="text-sm text-blue-200 mb-2">Current Picture:</p>
+                                        <div class="flex items-center space-x-4" id="current-profile_picture-display">
+                                            <img src="{{ user_profile.profile_picture.url }}" alt="Current Profile Picture" class="w-20 h-20 rounded-full object-cover border-4 border-blue-600 shadow-lg">
+                                            <div>
+                                                <p class="text-sm text-blue-200 font-medium">{{ user_profile.profile_picture.name|cut:"uploads/profile_pictures/" }}</p>
+                                                <p class="text-xs text-blue-400">Uploaded: {{ user_profile.updated_at|date:"M d, Y" }}</p>
+                                            </div>
                                         </div>
                                     </div>
+                                {% else %}
+                                    <div class="mb-4" id="current-profile_picture-display">
+                                        <p class="text-sm text-blue-200 mb-2">No profile picture uploaded.</p>
+                                        <div class="w-20 h-20 rounded-full bg-slate-700 flex items-center justify-center border-2 border-slate-600">
+                                            <svg class="w-8 h-8 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                                            </svg>
+                                        </div>
+                                    </div>
+                                {% endif %}
+
+                                <div class="border-2 border-dashed border-slate-600 rounded-lg p-4 hover:border-blue-400 transition-colors bg-slate-900/40">
+                                    <div class="file-input-wrapper">
+                                        {{ form.profile_picture }}
+                                        <label for="{{ form.profile_picture.id_for_label }}" class="file-input-button-label">
+                                            Choose File
+                                        </label>
+                                        <div class="file-display-area">
+                                            <span class="file-input-text {% if not user_profile.profile_picture %}no-file{% else %}current-file-name{% endif %}" id="file-name-{{ form.profile_picture.id_for_label }}">
+                                                {% if user_profile.profile_picture %}{{ user_profile.profile_picture.name|cut:"uploads/profile_pictures/" }}{% else %}No file chosen{% endif %}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    {% if form.profile_picture.errors %}
+                                        <p class="text-red-400 text-sm mt-1">{{ form.profile_picture.errors.0 }}</p>
+                                    {% endif %}
+                                    <p class="text-xs text-slate-400 mt-2">Upload a new profile picture (JPG, PNG - max 5MB)</p>
                                 </div>
-                            {% else %}
-                                <div class="mb-4">
-                                    <p class="text-sm text-slate-600 mb-2">No profile picture uploaded yet.</p>
-                                    <div class="w-20 h-20 rounded-full bg-slate-200 flex items-center justify-center">
-                                        <svg class="w-8 h-8 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
-                                        </svg>
+                            </div>
+
+                            
+                        </div>
+                    </div>
+
+                    <div class="mt-8 pt-6 border-t-2 border-blue-700/80">
+                        <h4 class="text-xl font-semibold text-blue-300 mb-4">Payment Details (optional)</h4>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label for="{{ form.upi_id.id_for_label }}" class="block text-sm font-semibold text-blue-200 mb-2">UPI ID (optional)</label>
+                                {{ form.upi_id }}
+                                {% if form.upi_id.errors %}
+                                    <p class="text-red-400 text-sm mt-1">{{ form.upi_id.errors.0 }}</p>
+                                {% endif %}
+                                <p class="text-xs text-blue-400 mt-1">Recruiters can pay you on this UPI.</p>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-blue-200 mb-2">QR Code (optional)</label>
+                                <div class="file-input-wrapper">
+                                    {{ form.qr_code }}
+                                    <label for="{{ form.qr_code.id_for_label }}" class="file-input-button-label">
+                                        Choose File
+                                    </label>
+                                    <div class="file-display-area">
+                                        <span class="file-input-text {% if not user_profile.qr_code %}no-file{% else %}current-file-name{% endif %}" id="file-name-{{ form.qr_code.id_for_label }}">
+                                            {% if user_profile.qr_code %}{{ user_profile.qr_code.name|cut:"uploads/qr_codes/" }}{% else %}No file chosen{% endif %}
+                                        </span>
+                                    </div>
+                                </div>
+                                {% if form.qr_code.errors %}
+                                    <p class="text-red-400 text-sm mt-1">{{ form.qr_code.errors.0 }}</p>
+                                {% endif %}
+                                <p class="text-xs text-blue-400 mt-1">Upload a payment QR for quick scanner payments.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-8 pt-6 border-t-2 border-blue-700/80">
+                        <h4 class="text-xl font-semibold text-blue-300 mb-4">Bank Details (optional)</h4>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label for="{{ form.bank_account_name.id_for_label }}" class="block text-sm font-semibold text-blue-200 mb-2">Account Holder Name</label>
+                                {{ form.bank_account_name }}
+                            </div>
+                            <div>
+                                <label for="{{ form.bank_name.id_for_label }}" class="block text-sm font-semibold text-blue-200 mb-2">Bank Name</label>
+                                {{ form.bank_name }}
+                            </div>
+                            <div>
+                                <label for="{{ form.bank_account_number.id_for_label }}" class="block text-sm font-semibold text-blue-200 mb-2">Account Number</label>
+                                {{ form.bank_account_number }}
+                            </div>
+                            <div>
+                                <label for="{{ form.bank_ifsc.id_for_label }}" class="block text-sm font-semibold text-blue-200 mb-2">IFSC Code</label>
+                                {{ form.bank_ifsc }}
+                            </div>
+                        </div>
+                        <p class="text-xs text-blue-400 mt-2">These details may be shown to recruiters during payment initiation.</p>
+                    </div>
+
+                    <div class="mt-8 pt-8 border-t-2 border-blue-700/80">
+                        <h3 class="text-2xl font-semibold text-blue-300 mb-4">Skills</h3>
+                        <div class="mb-4">
+                            <label class="block text-sm font-semibold text-blue-200 mb-3">Select Your Skills</label>
+                            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                                {% for choice in form.selected_skills %}
+                                <label class="flex items-center space-x-3 cursor-pointer p-3 border-2 border-blue-700 rounded-lg hover:bg-blue-800 hover:border-blue-400 transition-all duration-200 shadow-sm hover:shadow-lg bg-blue-900/40">
+                                    {{ choice.tag }}
+                                    <span class="text-sm text-blue-200 font-medium">{{ choice.choice_label }}</span>
+                                </label>
+                                {% endfor %}
+                            </div>
+                            {% if form.selected_skills.errors %}
+                                <p class="text-red-400 text-sm mt-1">{{ form.selected_skills.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+                        <div class="mt-6">
+                            <label for="{{ form.skills.id_for_label }}" class="block text-sm font-semibold text-blue-200 mb-2">Additional Skills (comma-separated)</label>
+                            {{ form.skills }}
+                            {% if form.skills.errors %}
+                                <p class="text-red-400 text-sm mt-1">{{ form.skills.errors.0 }}</p>
+                            {% endif %}
+                            <p class="text-xs text-blue-400 mt-2">Enter any additional skills not listed above</p>
+                        </div>
+                    </div>
+
+                    <div class="mt-8 pt-8 flex justify-end border-t-2 border-blue-700/80">
+                        <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-lg shadow-lg hover:shadow-blue-300 transition-all duration-200 transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-blue-300">
+                            Update Profile
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="bg-gray-800/80 backdrop-blur-md rounded-2xl shadow-2xl p-6 sm:p-8 mb-8 border border-blue-700">
+                <div class="flex flex-wrap justify-between items-center gap-4 mb-5 border-b-2 border-blue-700 pb-5">
+                    <h2 class="text-3xl font-semibold text-blue-300">Work Examples</h2>
+                    <a href="{% url 'add_work_example' %}" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2.5 px-5 rounded-lg shadow-lg hover:shadow-green-300 transition-all duration-200 inline-flex items-center gap-2 transform hover:scale-105">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" /></svg>
+                        Add Work Example
+                    </a>
+                </div>
+                {% if work_examples %}
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {% for example in work_examples %}
+                        <div class="border-2 border-blue-700 rounded-xl p-4 transition-all duration-300 hover:shadow-2xl hover:border-blue-400 group bg-blue-900/40">
+                            <div class="mb-3">
+                                  {% if example.file and example.work_type == 'photo' %}
+                                      <div class="overflow-hidden rounded-lg mb-4 shadow-md">
+                                          <img src="{{ example.file.url }}" alt="{{ example.title }}" class="w-full h-40 object-cover transition-transform duration-300 group-hover:scale-110">
+                                      </div>
+                                  {% endif %}
+                                <h3 class="text-lg font-bold text-blue-300">{{ example.title }}</h3>
+                                <p class="text-sm text-blue-200">{{ example.get_work_type_display }}</p>
+                            </div>
+                            {% if example.description %}
+                                <p class="text-sm text-blue-200 mb-3">{{ example.description }}</p>
+                            {% endif %}
+                            {% if example.file and example.work_type != 'photo' %}
+                                <div class="mb-3">
+                                    <div class="bg-blue-800 rounded p-3 text-center">
+                                        <p class="text-sm text-blue-300 truncate">{{ example.file.name }}</p>
+                                        <a href="{{ example.file.url }}" target="_blank" class="text-blue-400 hover:text-blue-200 text-sm font-semibold">View File</a>
                                     </div>
                                 </div>
                             {% endif %}
-                            
-                            <div class="border-2 border-dashed border-slate-300 rounded-lg p-4 hover:border-blue-500 transition-colors bg-slate-50/50">
-                                {{ form.profile_picture }}
-                                {% if form.profile_picture.errors %}
-                                    <p class="text-red-500 text-sm mt-1">{{ form.profile_picture.errors.0 }}</p>
-                                {% endif %}
-                                <p class="text-xs text-slate-500 mt-2">Upload a new profile picture (JPG, PNG, GIF - max 5MB)</p>
+                            <div class="flex justify-between items-center pt-3 border-t border-blue-700">
+                                <span class="text-xs text-blue-400">{{ example.created_at|date:"M d, Y" }}</span>
+                                <a href="{% url 'delete_work_example' example.id %}"
+                                    onclick="return confirm('Are you sure you want to delete this work example?')"
+                                    class="text-red-500 hover:text-red-300 text-sm font-semibold">Delete</a>
                             </div>
                         </div>
-                        
-                        <div>
-                            <label class="block text-sm font-semibold text-slate-700 mb-2">Bio</label>
-                            {{ form.bio }}
-                            {% if form.bio.errors %}
-                                <p class="text-red-500 text-sm mt-1">{{ form.bio.errors.0 }}</p>
-                            {% endif %}
-                        </div>
-
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-sm font-semibold text-slate-700 mb-2">UPI ID (optional)</label>
-                                {{ form.upi_id }}
-                                {% if form.upi_id.errors %}
-                                    <p class="text-red-500 text-sm mt-1">{{ form.upi_id.errors.0 }}</p>
-                                {% endif %}
-                                <p class="text-xs text-slate-500 mt-1">Recruiters can pay you on this UPI.</p>
-                            </div>
-                            <div>
-                                <label class="block text-sm font-semibold text-slate-700 mb-2">QR Code (optional)</label>
-                                {{ form.qr_code }}
-                                {% if form.qr_code.errors %}
-                                    <p class="text-red-500 text-sm mt-1">{{ form.qr_code.errors.0 }}</p>
-                                {% endif %}
-                                <p class="text-xs text-slate-500 mt-1">Upload a payment QR for quick scanner payments.</p>
-                            </div>
-                        </div>
-
-                        <div class="mt-6">
-                            <h4 class="text-lg font-semibold text-slate-900 mb-3">Bank Details (optional)</h4>
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div>
-                                    <label class="block text-sm font-semibold text-slate-700 mb-2">Account Holder Name</label>
-                                    {{ form.bank_account_name }}
-                                </div>
-                                <div>
-                                    <label class="block text-sm font-semibold text-slate-700 mb-2">Bank Name</label>
-                                    {{ form.bank_name }}
-                                </div>
-                                <div>
-                                    <label class="block text-sm font-semibold text-slate-700 mb-2">Account Number</label>
-                                    {{ form.bank_account_number }}
-                                </div>
-                                <div>
-                                    <label class="block text-sm font-semibold text-slate-700 mb-2">IFSC Code</label>
-                                    {{ form.bank_ifsc }}
-                                </div>
-                            </div>
-                            <p class="text-xs text-slate-500 mt-2">These details may be shown to recruiters during payment initiation.</p>
-                        </div>
+                        {% endfor %}
                     </div>
-                </div>
-                
-                <div class="mt-8 pt-8 border-t-2 border-slate-200/80">
-                    <h3 class="text-2xl font-semibold text-slate-900 mb-4">Skills</h3>
-                    
-                    <div class="mb-4">
-                        <label class="block text-sm font-semibold text-slate-700 mb-3">Select Your Skills</label>
-                        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                            {% for choice in form.selected_skills %}
-                            <label class="flex items-center space-x-3 cursor-pointer p-3 border-2 border-slate-200 rounded-lg hover:bg-blue-50 hover:border-blue-400 transition-all duration-200 shadow-sm hover:shadow-lg">
-                                {{ choice.tag }}
-                                <span class="text-sm text-slate-700 font-medium">{{ choice.choice_label }}</span>
-                            </label>
-                            {% endfor %}
-                        </div>
-                        {% if form.selected_skills.errors %}
-                            <p class="text-red-500 text-sm mt-1">{{ form.selected_skills.errors.0 }}</p>
-                        {% endif %}
+                {% else %}
+                    <div class="text-center py-16 border-2 border-dashed border-blue-700 rounded-lg bg-blue-900/40">
+                        <p class="text-blue-300 mb-4 font-semibold">No work examples uploaded yet.</p>
+                        <p class="text-sm text-blue-400">Upload examples of your previous work to showcase your skills.</p>
                     </div>
-                    
-                    <div class="mt-6">
-                        <label class="block text-sm font-semibold text-slate-700 mb-2">Additional Skills (comma-separated)</label>
-                        {{ form.skills }}
-                        {% if form.skills.errors %}
-                            <p class="text-red-500 text-sm mt-1">{{ form.skills.errors.0 }}</p>
-                        {% endif %}
-                        <p class="text-xs text-slate-500 mt-2">Enter any additional skills not listed above</p>
-                    </div>
-                </div>
-                
-                <div class="mt-8 pt-8 flex justify-end border-t-2 border-slate-200/80">
-                    <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-lg shadow-lg hover:shadow-blue-300 transition-all duration-200 transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-blue-300">
-                        Update Profile
-                    </button>
-                </div>
-            </form>
-        </div>
-
-        <div class="bg-white/70 backdrop-blur-xl rounded-2xl shadow-2xl p-6 sm:p-8 mb-8 border border-white/50">
-            <div class="flex flex-wrap justify-between items-center gap-4 mb-5 border-b-2 border-slate-200 pb-5">
-                <h2 class="text-3xl font-semibold text-slate-900">Work Examples</h2>
-                <a href="{% url 'add_work_example' %}" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2.5 px-5 rounded-lg shadow-lg hover:shadow-green-300 transition-all duration-200 inline-flex items-center gap-2 transform hover:scale-105">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" /></svg>
-                    Add Work Example
-                </a>
+                {% endif %}
             </div>
-            
-            {% if work_examples %}
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {% for example in work_examples %}
-                    <div class="border-2 border-slate-200 rounded-xl p-4 transition-all duration-300 hover:shadow-2xl hover:border-blue-500 group bg-slate-50/50">
-                        <div class="mb-3">
-                             {% if example.file and example.work_type == 'photo' %}
-                                <div class="overflow-hidden rounded-lg mb-4 shadow-md">
-                                    <img src="{{ example.file.url }}" alt="{{ example.title }}" class="w-full h-40 object-cover transition-transform duration-300 group-hover:scale-110">
-                                </div>
-                            {% endif %}
-                            <h3 class="text-lg font-bold text-slate-900">{{ example.title }}</h3>
-                            <p class="text-sm text-slate-600">{{ example.get_work_type_display }}</p>
-                        </div>
-                        
-                        {% if example.description %}
-                            <p class="text-sm text-slate-700 mb-3">{{ example.description }}</p>
-                        {% endif %}
-                        
-                        {% if example.file and example.work_type != 'photo' %}
-                            <div class="mb-3">
-                                <div class="bg-slate-200 rounded p-3 text-center">
-                                    <p class="text-sm text-slate-600 truncate">{{ example.file.name }}</p>
-                                    <a href="{{ example.file.url }}" target="_blank" class="text-blue-600 hover:text-blue-800 text-sm font-semibold">View File</a>
-                                </div>
-                            </div>
-                        {% endif %}
-                        
-                        <div class="flex justify-between items-center pt-3 border-t border-slate-200">
-                            <span class="text-xs text-slate-500">{{ example.created_at|date:"M d, Y" }}</span>
-                            <a href="{% url 'delete_work_example' example.id %}" 
-                               onclick="return confirm('Are you sure you want to delete this work example?')"
-                               class="text-red-600 hover:text-red-800 text-sm font-semibold">Delete</a>
-                        </div>
-                    </div>
-                    {% endfor %}
-                </div>
-            {% else %}
-                <div class="text-center py-16 border-2 border-dashed border-slate-300 rounded-lg bg-slate-50/50">
-                    <p class="text-slate-600 mb-4 font-semibold">No work examples uploaded yet.</p>
-                    <p class="text-sm text-slate-500">Upload examples of your previous work to showcase your skills.</p>
-                </div>
-            {% endif %}
-        </div>
 
-        <div class="bg-white/70 backdrop-blur-xl rounded-2xl shadow-2xl p-6 sm:p-8 border border-white/50">
-            <div class="flex flex-wrap justify-between items-center gap-4">
-                <div>
-                    <h2 class="text-3xl font-semibold text-slate-900">Skill-Based Recommendations</h2>
-                    <p class="text-slate-600 mt-1">Get personalized job recommendations using AI technology.</p>
+            <div class="bg-gray-800/80 backdrop-blur-md rounded-2xl shadow-2xl p-6 sm:p-8 border border-blue-700">
+                <div class="flex flex-wrap justify-between items-center gap-4">
+                    <div>
+                        <h2 class="text-3xl font-semibold text-blue-300">Skill-Based Recommendations</h2>
+                        <p class="text-blue-200 mt-1">Get personalized job recommendations using AI technology.</p>
+                    </div>
+                    <a href="{% url 'skill_based_jobs' %}" class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2.5 px-5 rounded-lg shadow-lg hover:shadow-purple-300 transition-all duration-200 inline-flex items-center gap-2 transform hover:scale-105">
+                        View Recommendations
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>
+                    </a>
                 </div>
-                <a href="{% url 'skill_based_jobs' %}" class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2.5 px-5 rounded-lg shadow-lg hover:shadow-purple-300 transition-all duration-200 inline-flex items-center gap-2 transform hover:scale-105">
-                    View Recommendations
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>
-                </a>
             </div>
         </div>
     </div>
 </div>
-</div>
 
 <script>
-    // Image preview and validation functionality
-    function previewImage(input) {
-        const file = input.files[0];
-        const maxSize = parseInt(input.getAttribute('data-max-size')) || 5242880; // 5MB default
+    function getFileNameFromPath(path) {
+        if (!path) return '';
+        return path.split('/').pop();
+    }
+
+    function setupFileInput(inputId) {
+        const input = document.getElementById(inputId);
+        if (!input) return;
+
+        const fileNameSpan = document.getElementById('file-name-' + inputId);
+        const currentDisplay = document.getElementById('current-' + inputId.replace('id_', '') + '-display');
         
-        if (file) {
-            // Check file size
-            if (file.size > maxSize) {
-                alert('File size must be less than 5MB');
-                input.value = '';
-                return;
-            }
-            
-            // Check file type
-            if (!file.type.startsWith('image/')) {
-                alert('Please select an image file');
-                input.value = '';
-                return;
-            }
-            
-            // Create preview
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                // Find or create preview container
-                let previewContainer = document.getElementById('image-preview');
-                if (!previewContainer) {
-                    previewContainer = document.createElement('div');
-                    previewContainer.id = 'image-preview';
-                    previewContainer.className = 'mt-3';
-                    input.parentNode.appendChild(previewContainer);
+        const originalFileName = fileNameSpan ? fileNameSpan.textContent.trim() : null;
+        if (originalFileName && originalFileName !== "No file chosen") {
+            input.dataset.originalFileName = originalFileName;
+        }
+
+        input.addEventListener('change', function() {
+            const file = this.files[0];
+            const maxSize = parseInt(this.getAttribute('data-max-size')) || 5242880;
+
+            const existingPreview = document.getElementById('image-preview-' + inputId);
+            if (existingPreview) existingPreview.remove();
+            if (currentDisplay) currentDisplay.style.display = 'none';
+
+            if (file) {
+                if (file.size > maxSize) {
+                    alert('File size must be less than 5MB');
+                    resetFileInput(input);
+                    return;
                 }
-                
-                previewContainer.innerHTML = `
-                    <div class="flex items-center space-x-4">
-                        <img src="${e.target.result}" alt="Preview" class="w-20 h-20 rounded-full object-cover border-2 border-gray-200">
-                        <div>
-                            <p class="text-sm text-gray-600">${file.name}</p>
-                            <p class="text-xs text-gray-400">${(file.size / 1024 / 1024).toFixed(2)} MB</p>
-                            <button type="button" onclick="removePreview()" class="text-xs text-red-600 hover:text-red-800">
-                                Remove
-                            </button>
-                        </div>
-                    </div>
-                `;
-            };
-            reader.readAsDataURL(file);
-        }
+                if (input.accept.includes('image/*') && !file.type.startsWith('image/')) {
+                    alert('Please select an image file');
+                    resetFileInput(input);
+                    return;
+                }
+
+                fileNameSpan.textContent = file.name;
+                fileNameSpan.classList.remove('no-file');
+                fileNameSpan.classList.add('current-file-name');
+
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const previewContainer = document.createElement('div');
+                    previewContainer.id = 'image-preview-' + inputId;
+                    previewContainer.className = 'mt-3';
+                    input.closest('.border-dashed').appendChild(previewContainer);
+                    previewContainer.innerHTML = `
+                        <div class="flex items-center space-x-4">
+                            <img src="${e.target.result}" alt="Preview" class="w-20 h-20 rounded-full object-cover border-2 border-blue-600">
+                            <div>
+                                <p class="text-sm text-blue-400">${file.name}</p>
+                                <p class="text-xs text-blue-500">${(file.size / 1024 / 1024).toFixed(2)} MB</p>
+                                <button type="button" onclick="removePreview('${inputId}')" class="text-xs text-red-500 hover:text-red-300">Remove</button>
+                            </div>
+                        </div>`;
+                };
+                reader.readAsDataURL(file);
+            } else {
+                resetFileInput(input);
+            }
+        });
     }
     
-    function removePreview() {
-        const previewContainer = document.getElementById('image-preview');
-        const fileInput = document.querySelector('input[type="file"]');
-        if (previewContainer) {
-            previewContainer.remove();
-        }
-        if (fileInput) {
-            fileInput.value = '';
-        }
-    }
-    
-    // Form validation
-    document.querySelector('form').addEventListener('submit', function(e) {
-        const fileInput = document.querySelector('input[type="file"]');
-        const file = fileInput.files[0];
+    function resetFileInput(input) {
+        const inputId = input.id;
+        const fileNameSpan = document.getElementById('file-name-' + inputId);
+        const currentDisplay = document.getElementById('current-' + inputId.replace('id_', '') + '-display');
         
-        if (file) {
-            const maxSize = parseInt(fileInput.getAttribute('data-max-size')) || 5242880;
-            
-            if (file.size > maxSize) {
-                e.preventDefault();
-                alert('File size must be less than 5MB');
-                return false;
-            }
-            
-            if (!file.type.startsWith('image/')) {
-                e.preventDefault();
-                alert('Please select an image file');
-                return false;
+        input.value = '';
+
+        const preview = document.getElementById('image-preview-' + inputId);
+        if (preview) preview.remove();
+        
+        if (currentDisplay) currentDisplay.style.display = '';
+
+        if (fileNameSpan) {
+            const originalName = input.dataset.originalFileName;
+            if (originalName) {
+                fileNameSpan.textContent = originalName;
+                fileNameSpan.classList.add('current-file-name');
+                fileNameSpan.classList.remove('no-file');
+            } else {
+                fileNameSpan.textContent = "No file chosen";
+                fileNameSpan.classList.add('no-file');
+                fileNameSpan.classList.remove('current-file-name');
             }
         }
+    }
+    
+    function removePreview(inputId) {
+        const input = document.getElementById(inputId);
+        if (input) {
+            resetFileInput(input);
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        setupFileInput('id_profile_picture');
+        setupFileInput('id_qr_code');
     });
 </script>
 {% endblock %}

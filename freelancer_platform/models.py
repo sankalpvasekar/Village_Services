@@ -1,4 +1,6 @@
 from django.db import models
+from decimal import Decimal
+import re
 from django.contrib.auth.models import User
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db import models
@@ -36,14 +38,18 @@ class UserProfile(models.Model):
     skills = models.TextField(blank=True, null=True, help_text="Comma-separated list of skills")
     selected_skills = models.JSONField(default=list, blank=True, help_text="Selected skills from categories")
     experience_years = models.IntegerField(default=0, validators=[MinValueValidator(0), MaxValueValidator(50)])
-    hourly_rate = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+    hourly_rate = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal('0.00'))
     bio = models.TextField(blank=True, null=True)
     profile_picture = models.ImageField(upload_to='profile_pics/', blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     
     def __str__(self):
-        return f"{self.user.username} - {self.user_type}"
+        try:
+            username = self.user.username
+        except User.DoesNotExist:
+            username = f"missing-user:{getattr(self, 'user_id', None)}"
+        return f"{username} - {self.user_type}"
     
     def get_skills_list(self):
         """Return skills as a list"""
@@ -59,6 +65,16 @@ class UserProfile(models.Model):
         return ""
     
     def save(self, *args, **kwargs):
+        # Coerce hourly_rate into a valid Decimal (strip any non-numeric chars like smart quotes)
+        try:
+            if isinstance(self.hourly_rate, str):
+                hr_clean = re.sub(r'[^0-9\.-]', '', self.hourly_rate)
+                self.hourly_rate = Decimal(hr_clean) if hr_clean else Decimal('0.00')
+            elif self.hourly_rate is None:
+                self.hourly_rate = Decimal('0.00')
+        except Exception:
+            self.hourly_rate = Decimal('0.00')
+
         # Delete old profile picture if a new one is being uploaded
         if self.pk:  # Only for existing instances
             try:
@@ -85,7 +101,11 @@ class WorkExample(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     
     def __str__(self):
-        return f"{self.freelancer.user.username} - {self.title}"
+        try:
+            username = self.freelancer.user.username
+        except User.DoesNotExist:
+            username = f"missing-user:{getattr(self.freelancer, 'user_id', None)}"
+        return f"{username} - {self.title}"
     
     class Meta:
         ordering = ['-created_at']
@@ -184,7 +204,11 @@ class Application(models.Model):
         unique_together = ['job', 'freelancer']
     
     def __str__(self):
-        return f"{self.freelancer.user.username} - {self.job.title}"
+        try:
+            username = self.freelancer.user.username
+        except User.DoesNotExist:
+            username = f"missing-user:{getattr(self.freelancer, 'user_id', None)}"
+        return f"{username} - {self.job.title}"
 
 class JobRequest(models.Model):
     REQUEST_STATUS = [
@@ -224,7 +248,11 @@ class JobRequest(models.Model):
         unique_together = ['job', 'freelancer']
     
     def __str__(self):
-        return f"{self.freelancer.user.username} - {self.job.title}"
+        try:
+            username = self.freelancer.user.username
+        except User.DoesNotExist:
+            username = f"missing-user:{getattr(self.freelancer, 'user_id', None)}"
+        return f"{username} - {self.job.title}"
     
     def get_proposal_display(self):
         """Get formatted proposal rate display"""
