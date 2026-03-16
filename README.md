@@ -1,7 +1,17 @@
 # Village Services
 
-## 🎥 YouTube Demo
-(Add YouTube video link here after upload)
+## 🎥 YouTube Demo link below 👇
+
+[![Watch the Demo](https://img.youtube.com/vi/fOaI9NvgUPg/maxresdefault.jpg)](https://youtu.be/fOaI9NvgUPg)
+
+## Features
+- Feature 1
+- Feature 2
+- Feature 3
+
+## Installation
+```bash
+# Example installation command
 
 ## Project Description
 A Django-based platform connecting local workers with job opportunities to reduce poverty through economic empowerment. The platform uses AI-powered matching to connect skilled local workers with job opportunities, helping communities thrive and individuals achieve financial independence.
